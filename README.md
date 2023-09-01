@@ -1,1 +1,1 @@
-# crushchat
+# Alternative Crush Chat Client
