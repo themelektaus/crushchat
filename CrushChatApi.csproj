@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Build\**" />
+    <Compile Remove="Data\**" />
+    <Content Remove="Build\**" />
+    <Content Remove="Data\**" />
+    <EmbeddedResource Remove="Build\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <None Remove="Build\**" />
+    <None Remove="Data\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <_WebToolingArtifacts Remove="Properties\PublishProfiles\Linux.pubxml" />
+    <_WebToolingArtifacts Remove="Properties\PublishProfiles\Windows.pubxml" />
+  </ItemGroup>
+</Project>

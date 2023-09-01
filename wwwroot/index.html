@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>My CrushChat</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0; maximum-scale=1.0, user-scalable=0" />
+        <link rel="stylesheet" href="css/style.css">
+        <script src="js/functions.js" defer></script>
+        <script src="js/setup.js" defer></script>
+        <script src="js/events.js" defer></script>
+        <script src="js/main.js" defer></script>
+    </head>
+    <body>
+        <div id="main">
+            <div id="content"></div>
+            <div id="common-load-indicator" class="display-none">
+                <div class="load-indicator"></div>
+            </div>
+            <div id="message-load-indicator" class="display-none">
+                <div class="load-indicator"></div>
+            </div>
+            <div id="bottombar" class="display-none">
+                <input id="message-input" placeholder="Leave empty to get a reply">
+                <button id="send-message-button" class="display-none">Send</button>
+                <button id="receive-message-button">Receive</button>
+                <button id="menu-button"></button>
+            </div>
+            <div id="menu-wrapper">
+                <div id="menu">
+                    <div class="item" id="settings-menu-item">Settings</div>
+                    <div class="item" id="clear-cache-menu-item">Clear Cache</div>
+                    <div class="item" id="clear-chat-menu-item">Clear Chat</div>
+                    <div class="item" id="translate-menu-item">Translate to <span data-lang style="font-weight: bold; "></span></div>
+                    <div class="item" id="back-to-home-menu-item">Back to Home</div>
+                </div>
+            </div>
+        </div>
+        <div class="overlay" id="menu-overlay"></div>
+        <div class="overlay hidden" id="message-dialog-overlay">
+            <div class="dialog" id="message-dialog">
+                <div class="title">Message</div>
+                <div class="content">
+                    <div class="inner-content">
+                        <div id="message-image">
+                            <button id="generate-image-button">Generate</button>
+                            <button id="delete-image-button">Delete</button>
+                        </div>
+                        <div class="text"><textarea id="message-content-input"></textarea></div>
+                        <button id="generate-message-button" style="display: block; margin: .5rem auto 0; ">
+                            Regenerate Message
+                        </button>
+                    </div>
+                    <div class="buttons">
+                        <button id="save-message-button">Save</button>
+                        <button id="delete-message-button">Delete</button>
+                        <button id="cancel-message-button">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="overlay hidden">
+            <div class="dialog" id="settings-dialog">
+                <div class="title">Settings</div>
+                <div class="content">
+                    <div class="inner-content">
+                        <div class="section">
+                            <div class="title">CrushChat Cookies</div>
+                            <div class="field">
+                                <label>CSRF Token</label>
+                                <input class="settings-field" data-bind="csrf-token" type="text">
+                            </div class="field">
+                            <div class="field">
+                                <label>Session Token</label>
+                                <input class="settings-field" data-bind="session-token" type="text">
+                            </div>
+                            <div class="field">
+                                <label></label>
+                                <button class="parse-tokens-from-clipboard">Paste from Clipboard</button>
+                            </div>
+                            <div style="height: 1rem; "></div>
+                            <div class="field display-none">
+                                <label>Character Limit</label>
+                                <input class="settings-field" data-bind="character-limit" type="text">
+                            </div>
+                            <div class="field display-none">
+                                <label>Message Limit</label>
+                                <input class="settings-field" data-bind="message-limit" type="text">
+                            </div>
+                        </div>
+                        <div class="section display-none">
+                            <div class="title">DeepL</div>
+                            <div class="field">
+                                <label>Block Size</label>
+                                <input class="settings-field" data-bind="deepl-block-size" type="text">
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="title">User Settings</div>
+                            <div class="field">
+                                <label>Language</label>
+                                <input class="settings-field" data-bind="language" type="text" style="max-width: 3em; text-align: center; ">
+                            </div>
+                            <div class="field">
+                                <label>DeepL Auth Key</label>
+                                <input class="settings-field" data-bind="deepl-auth-key" type="text">
+                            </div>
+                            <div class="field">
+                                <input class="settings-field" data-bind="auto-generate" type="checkbox">
+                                <div>Get Auto Reply</div>
+                            </div>
+                            <div class="field">
+                                <input class="settings-field" data-bind="show-original-messages" type="checkbox">
+                                <div>Show Original Messages</div>
+                            </div>
+                            <div class="field">
+                                <input class="settings-field" data-bind="hide-images" type="checkbox">
+                                <div>Hide Images</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <button id="save-settings-button">Save</button>
+                        <button id="cancel-settings-button">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
