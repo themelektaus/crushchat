@@ -2,6 +2,8 @@
 /.vs/
 /bin/
 /Build/
+/Data
 /Data/
 /obj/
 /CrushChatApi.csproj.user
+*.pubxml.user

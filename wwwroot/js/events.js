@@ -1,67 +1,107 @@
 // Events
 
-$_.messageInput.addEventListener(`input`, refreshSendMessageButton)
+q(`#page-main__characters`).addEventListener(`click`, async () =>
+{
+    preRefresh()
+    await refreshCharactersPageAsync()
+    postRefresh()
+})
 
-$_.messageInput.addEventListener(`keydown`, e =>
+q(`#page-main__image-generator`).addEventListener(`click`, async () => 
+{
+    preRefresh()
+    await refreshImageGeneratorPageAsync()
+    postRefresh()
+})
+
+q(`#page-main__settings`).addEventListener(`click`, async () => 
+{
+    openSettingsDialog()
+})
+
+query(`.menu .item`).forEach(x =>
+{
+    x.addEventListener(`click`, () =>
+    {
+        toggleMenu(false)
+    })
+})
+
+query(`.menu .item__main-menu`).forEach(x =>
+{
+    x.addEventListener(`click`, async () =>
+    {
+        preRefresh()
+        await refreshMainPage()
+        postRefresh()
+    })
+})
+
+$_.chatMessageInput.addEventListener(`input`, refreshSendMessageButton)
+
+$_.chatMessageInput.addEventListener(`keydown`, e =>
 {
     if (e.keyCode != 13)
         return
     
     e.stopPropagation()
     
-    if ($_.messageInput.value)
+    if ($_.chatMessageInput.value)
     {
-        $_.sendMessageButton.click()
+        $_.chatSendMessageButton.click()
         return
     }
     
-    $_.receiveMessageButton.click()
+    $_.chatReceiveMessageButton.click()
 })
 
-$_.sendMessageButton.addEventListener(`click`, async () =>
+$_.chatSendMessageButton.addEventListener(`click`, async () =>
 {
-    if (!$_.messageInput.value)
+    if (!$_.chatMessageInput.value)
         return
     
     const scrollTop = window.scrollTop
     
     preRefresh()
+    
     q(`#common-load-indicator`).classList.add(`display-none`)
-    q(`#message-load-indicator`).classList.remove(`display-none`)
+    q(`#chat-load-indicator`).classList.remove(`display-none`)
     
     scrollDown()
     
     await requestAsync(`/api/characters/${currentCharacter.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: $_.messageInput.value
+        body: $_.chatMessageInput.value
     })
     
-    await refreshMessagesAsync()
+    await refreshChatAsync()
+    
     postRefresh()
     
-    $_.messageInput.value = ``
+    $_.chatMessageInput.value = ``
     refreshSendMessageButton()
     
     window.scrollTop = scrollTop
     scrollDown()
     
     if (localStorage.getItem('auto-generate') == "true")
-        $_.receiveMessageButton.click()
+        $_.chatReceiveMessageButton.click()
 })
 
-$_.receiveMessageButton.addEventListener(`click`, async () =>
+$_.chatReceiveMessageButton.addEventListener(`click`, async () =>
 {
     const scrollTop = window.scrollTop
     
     preRefresh()
+    
     q(`#common-load-indicator`).classList.add(`display-none`)
-    q(`#message-load-indicator`).classList.remove(`display-none`)
+    q(`#chat-load-indicator`).classList.remove(`display-none`)
     
     scrollDown()
     
     await requestAsync(`/api/characters/${currentCharacter.id}/messages/generate`)
-    await refreshMessagesAsync()
+    await refreshChatAsync()
     
     postRefresh()
     
@@ -69,70 +109,17 @@ $_.receiveMessageButton.addEventListener(`click`, async () =>
     scrollDown()
 })
 
-query(`#menu-button, #menu-overlay`).forEach(x => x.addEventListener(`click`, toggleMenu))
-
-q(`#clear-cache-menu-item`).addEventListener(`click`, async () =>
+query(`
+    #characters__menu-button,
+    #chat__menu-button,
+    #image-generator__menu-button,
+    #menu-overlay`
+).forEach(x =>
 {
-    toggleMenu()
-    
-    preRefresh()
-    scrollDown()
-    
-    await refreshMessagesAsync({ cache: false })
-    
-    postRefresh()
-    scrollDown()
-})
-
-q(`#clear-chat-menu-item`).addEventListener(`click`, async () =>
-{
-    toggleMenu()
-    
-    preRefresh()
-    scrollDown()
-    
-    await requestAsync(`/api/characters/${currentCharacter.id}/messages/clear`)
-    await refreshMessagesAsync()
-    
-    postRefresh()
-    scrollDown()
-})
-
-q(`#translate-menu-item`).addEventListener(`click`, async () =>
-{
-    toggleMenu()
-    
-    preRefresh()
-    
-    await requestAsync(`/api/characters/${currentCharacter.id}/messages/translate`)
-        .then(x => x.json())
-        .then(x => currentCharacter = x)
-    await refreshMessagesAsync()
-    
-    postRefresh()
-})
-
-q(`#back-to-home-menu-item`).addEventListener(`click`, async () =>
-{
-    toggleMenu()
-    
-    currentPage = `home`
-    currentCharacter = null
-    
-    preRefresh()
-    await refreshHomePageAsync()
-    postRefresh()
-})
-
-q(`#settings-menu-item`).addEventListener(`click`, () =>
-{
-    toggleMenu()
-    openSettingsDialog()
-})
-
-q(`.parse-tokens-from-clipboard`).addEventListener(`click`, async () =>
-{
-    await parseTokensFromClipboardAsync()
+    x.addEventListener(`click`, () =>
+    {
+        toggleMenu()
+    })
 })
 
 q(`#save-settings-button`).addEventListener(`click`, async () =>
@@ -154,25 +141,113 @@ q(`#save-settings-button`).addEventListener(`click`, async () =>
     })
     
     $_.settingsDialog.parentElement.classList.add(`hidden`)
-    
-    hasAnyErrors = false
-    
-    preRefresh()
-    await refreshCurrentPageAsync()
-    postRefresh()
 })
 
-q(`#cancel-settings-button`).addEventListener(`click`, async () =>
+q(`#cancel-settings-button`).addEventListener(`click`, () =>
 {
-    await closeSettingsDialogAsync()
+    closeSettingsDialog()
 })
 
-$_.settingsDialog.parentElement.addEventListener(`click`, async e =>
+$_.settingsDialog.parentElement.addEventListener(`click`, e =>
 {
     if (e.target != $_.settingsDialog.parentElement)
         return
     
-    await closeSettingsDialogAsync()
+    closeSettingsDialog()
+})
+
+q(`.item__clear-cache`).addEventListener(`click`, async () =>
+{
+    preRefresh()
+    scrollDown()
+    
+    await refreshChatAsync({ cache: false, translate: true })
+    
+    postRefresh()
+    scrollDown()
+})
+
+q(`.item__clear-chat`).addEventListener(`click`, async () =>
+{
+    preRefresh()
+    scrollDown()
+    
+    await requestAsync(`/api/characters/${currentCharacter.id}/messages/clear`)
+    await refreshChatAsync()
+    
+    postRefresh()
+    scrollDown()
+})
+
+q(`#image-generator__generate-button`).addEventListener(`click`, async () =>
+{
+    const prompt = q(`#image-generator-prompt-input`).value
+    if (!prompt)
+        return
+    
+    preRefresh()
+    
+    const $image = q(`#image-generator-image`)
+    
+    $image.style = ``
+    
+    let options = { }
+    options.headers = { }
+    options.headers['X-Prompt'] = prompt
+    
+    const realistic = q(`#image-generator-realistic-toggle`).checked
+    
+    await requestAsync(`/api/generate-image?realistic=${realistic}`, options)
+    await refreshImageGeneratorPageAsync()
+    
+    postRefresh()
+    
+    q(`#image-generator-history`).children[1].click()
+})
+
+q(`#image-generator__delete-button`).addEventListener(`click`, async () =>
+{
+    const $image = q(`#image-generator-image`)
+    
+    preRefresh()
+    
+    await requestAsync(`/api/images/${$image.dataset.id}?delete=true`)
+    await refreshImageGeneratorPageAsync()
+    
+    postRefresh()
+})
+
+query(`.item__leave-chat`).forEach(x =>
+{
+    x.addEventListener(`click`, async () =>
+    {
+        preRefresh()
+        await refreshCharactersPageAsync()
+        postRefresh()
+    })
+})
+
+query(`.item__settings`).forEach(x =>
+{
+    x.addEventListener(`click`, () =>
+    {
+        openSettingsDialog()
+    })
+})
+
+q(`.parse-tokens-from-clipboard`).addEventListener(`click`, async () =>
+{
+    await parseTokensFromClipboardAsync()
+})
+
+q(`#generate-message-button`).addEventListener(`click`, async () =>
+{
+    $_.messageDialog.parentElement.classList.add(`hidden`)
+    
+    preRefresh()
+    await requestAsync(`/api/characters/${currentCharacter.id}/messages/generate/${currentMessage.index}`)
+    await refreshChatAsync({ cache: false })
+    postRefresh()
 })
 
 q(`#save-message-button`).addEventListener(`click`, async () =>
@@ -185,22 +260,8 @@ q(`#save-message-button`).addEventListener(`click`, async () =>
         headers: { 'Content-Type': 'text/plain' },
         body: q(`#message-content-input`).value
     })
-    await refreshMessagesAsync({ cache: false })
+    await refreshChatAsync({ cache: false })
     postRefresh()
-    
-    currentMessage = null
-})
-
-q(`#generate-message-button`).addEventListener(`click`, async () =>
-{
-    $_.messageDialog.parentElement.classList.add(`hidden`)
-    
-    preRefresh()
-    await requestAsync(`/api/characters/${currentCharacter.id}/messages/generate/${currentMessage.index}`)
-    await refreshMessagesAsync({ cache: false })
-    postRefresh()
-    
-    currentMessage = null
 })
 
 q(`#delete-message-button`).addEventListener(`click`, async () =>
@@ -209,17 +270,24 @@ q(`#delete-message-button`).addEventListener(`click`, async () =>
     
     preRefresh()
     await requestAsync(`/api/characters/${currentCharacter.id}/messages/delete/${currentMessage.index}`)
-    await refreshMessagesAsync()
+    await refreshChatAsync()
     postRefresh()
-    
-    currentMessage = null
 })
 
 q(`#cancel-message-button`).addEventListener(`click`, () =>
 {
-    $_.messageDialog.parentElement.classList.add(`hidden`)
+    if (isBusy())
+        return
     
-    currentMessage = null
+    $_.messageDialog.parentElement.classList.add(`hidden`)
+})
+
+q(`#message-dialog-overlay`).addEventListener(`click`, e =>
+{
+    if (e.target != q(`#message-dialog-overlay`))
+        return
+    
+    q(`#cancel-message-button`).click()
 })
 
 q(`#generate-image-button`).addEventListener(`click`, async () =>
@@ -227,11 +295,21 @@ q(`#generate-image-button`).addEventListener(`click`, async () =>
     $_.messageDialog.parentElement.classList.add(`hidden`)
     
     preRefresh()
-    await requestAsync(`/api/characters/${currentCharacter.id}/messages/generate-image/${currentMessage.index}`)
-    await refreshMessagesAsync({ cache: false })
-    postRefresh()
     
-    currentMessage = null
+    let options = undefined
+    
+    const prompt = q(`#custom-image-prompt`).value
+    if (prompt)
+    {
+        options = { }
+        options.headers = { }
+        options.headers['X-Prompt'] = prompt
+    }
+    
+    await requestAsync(`/api/characters/${currentCharacter.id}/messages/generate-image/${currentMessage.index}`, options)
+    await refreshChatAsync({ cache: false })
+    
+    postRefresh()
 })
 
 q(`#delete-image-button`).addEventListener(`click`, async () =>
@@ -239,15 +317,16 @@ q(`#delete-image-button`).addEventListener(`click`, async () =>
     $_.messageDialog.parentElement.classList.add(`hidden`)
     
     preRefresh()
-    await requestAsync(`/api/characters/${currentCharacter.id}/messages/delete-image/${currentMessage.index}`)
-    await refreshMessagesAsync({ cache: false })
-    postRefresh()
     
-    currentMessage = null
+    await requestAsync(`/api/characters/${currentCharacter.id}/messages/delete-image/${currentMessage.index}`)
+    await refreshChatAsync({ cache: false })
+    
+    postRefresh()
 })
 
-q(`#message-dialog-overlay`).addEventListener(`click`, e =>
+q(`[data-bind="translation-client"]`).addEventListener(`change`, e =>
 {
-    if (e.target == q(`#message-dialog-overlay`))
-        $_.messageDialog.parentElement.classList.add(`hidden`)
+    const value = q(`[data-bind="translation-client"]`).value
+    q(`[data-bind="deepl-auth-key"]`).parentElement.classList.toggle(`display-none`, value != `DeepL`)
+    q(`[data-bind="libretranslate-url"]`).parentElement.classList.toggle(`display-none`, value != `LibreTranslate`)
 })

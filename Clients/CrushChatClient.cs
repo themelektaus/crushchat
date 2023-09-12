@@ -45,7 +45,7 @@ public class CrushChatClient : IDisposable
             .Select(x => File.ReadAllText(x.FullName).FromJson<Character>())
             .ToList() : new();
 
-        if (request.GetQueryBoolean("cache"))
+        if (request.GetQueryBoolean("cache", true))
         {
             characters = cachedCharacters;
         }
@@ -101,19 +101,44 @@ public class CrushChatClient : IDisposable
         return characters;
     }
 
-    public async Task<List<Character.Message>> GetCharacterMessagesAsync(string characterId, bool preferCache, bool initialize = false)
+    public async Task<List<Character.Message>> GetCharacterMessagesAsync(
+        string characterId,
+        bool preferCache,
+        bool initialize = false,
+        bool translate = false
+    )
     {
         var jsonFile = Path.Combine("Data", "Messages", $"{characterId}.json");
 
+        var path = $"/api/messages?characterId={characterId}&limit={request.Headers["X-Message-Limit"]}";
+
+        var needsTranslation = request.NeedsTranslation(out var language);
+        if (needsTranslation && translate)
+        {
+            using var translationClient = ITranslationClient.Create(request);
+            if (translationClient is not null)
+            {
+                var _character = (await GetCharactersAsync()).FirstOrDefault(x => x.id == characterId);
+
+                var text = new List<string>() {
+                    _character.description.Trim(),
+                    _character.persona.Trim()
+                };
+
+                text.AddRange((await GetAsync<Character>(path)).messages.Select(x => x.content));
+
+                await translationClient.TranslateAsync("EN", language, text.ToArray());
+            }
+        }
+
         List<Character.Message> messages;
 
-        if (!initialize && (preferCache || request.GetQueryBoolean("cache")) && File.Exists(jsonFile))
+        if (!initialize && (preferCache || request.GetQueryBoolean("cache", true)) && File.Exists(jsonFile))
         {
             messages = File.ReadAllText(jsonFile).FromJson<List<Character.Message>>() ?? new();
         }
         else
         {
-            var path = $"/api/messages?characterId={characterId}&limit={request.Headers["X-Message-Limit"]}";
             var character = await GetAsync<Character>(path);
             messages = character.messages ?? new();
 
@@ -130,7 +155,7 @@ public class CrushChatClient : IDisposable
             File.WriteAllText(jsonFile, messages.ToJson());
         }
 
-        if (request.NeedsTranslation(out var language))
+        if (needsTranslation)
             foreach (var message in messages)
                 message.TranslateTo(language);
 
@@ -175,14 +200,60 @@ public class CrushChatClient : IDisposable
         return await result.Content.ReadFromJsonAsync<MessageRequest.Result>();
     }
 
-    public async Task<ImageRequest.Response> GenerateImageAsync(string characterId, ImageRequest imageRequest)
+    public async Task<ImageInfo> GenerateImageAsync(ImageRequest imageRequest)
     {
         using var message = CreateMessage(HttpMethod.Post, "/api/generate-image");
-        message.Headers.Add("Referer", $"https://crushchat.app/characters/chat/{characterId}");
         var json = imageRequest.ToJson();
         message.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
         var result = await client.SendAsync(message);
-        return await result.Content.ReadFromJsonAsync<ImageRequest.Response>();
+        if (!result.IsSuccessStatusCode)
+            return default;
+
+        var response = await result.Content.ReadFromJsonAsync<ImageRequest.Response>();
+
+        ImageRequest.Status status;
+
+        for (; ; )
+        {
+            status = await GetAsync<ImageRequest.Status>($"/api/images/status/{response.id}");
+            if (status.status == "error" || status.status == "completed")
+                break;
+
+            await Task.Delay(3000);
+        }
+
+        var imageUrl = status.reply.output.FirstOrDefault()?.image;
+
+        var imageResponse = await client.GetAsync(imageUrl);
+        if (!imageResponse.IsSuccessStatusCode)
+            return default;
+
+        var imagesFolder = Path.Combine("Data", "Images");
+        Directory.CreateDirectory(imagesFolder);
+
+        var imageName = imageUrl.ToMD5();
+        var imageFileName = $"{imageName}.png";
+        var imagePath = Path.Combine(imagesFolder, imageFileName);
+
+        using (var stream = new FileStream(imagePath, FileMode.CreateNew))
+            await imageResponse.Content.CopyToAsync(stream);
+
+        var imageInfo = new ImageInfo { request = imageRequest, originalUrl = imageUrl };
+
+        await File.WriteAllTextAsync(
+            Path.Combine(imagesFolder, $"{imageName}.json"),
+            imageInfo.ToJson()
+        );
+
+        return imageInfo.Load(imageName);
+    }
+    
+    public async Task<bool> GenerateCharacterImageAsync(string characterId)
+    {
+        using var message = CreateMessage(HttpMethod.Put, $"/api/characters/{characterId}/regenerate-image");
+        var result = await client.SendAsync(message);
+        return result.IsSuccessStatusCode;
     }
 
     public void Dispose()

@@ -2,48 +2,102 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>My CrushChat</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0; maximum-scale=1.0, user-scalable=0" />
+        <title>My CrushChat Client</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
         <link rel="stylesheet" href="css/style.css">
         <script src="js/functions.js" defer></script>
         <script src="js/setup.js" defer></script>
         <script src="js/events.js" defer></script>
-        <script src="js/main.js" defer></script>
     </head>
     <body>
         <div id="main">
-            <div id="content"></div>
+            <div class="page page__main">
+                <button id="page-main__characters">Characters</button>
+                <button id="page-main__image-generator">Image Generator</button>
+                <button id="page-main__settings">Settings</button>
+            </div>
+            <div class="page page__characters display-none">
+                
+            </div>
+            <div class="page page__chat display-none">
+                <div id="chat"></div>
+                <div id="chat-load-indicator" class="display-none">
+                    <div class="load-indicator"></div>
+                </div>
+            </div>
+            <div class="page page__image-generator display-none">
+                <div class="section" style="padding: 0; ">
+                    <div class="title">Image Generator</div>
+                    <div class="content">
+                        <div id="image-generator-history-container">
+                            <div id="image-generator-history"></div>
+                            <div class="image-generator-history-fade"></div>
+                            <div class="image-generator-history-fade"></div>
+                        </div>
+                        <div id="image-generator-image" data-has-image></div>
+                        <div class="text">
+                            <div class="field">
+                                <input id="image-generator-realistic-toggle" type="checkbox">
+                                <div>Realistic</div>
+                            </div>
+                            <textarea id="image-generator-prompt-input"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="common-load-indicator" class="display-none">
                 <div class="load-indicator"></div>
             </div>
-            <div id="message-load-indicator" class="display-none">
-                <div class="load-indicator"></div>
+            <div id="bottombar">
+                <div id="bottombar__characters" class="display-none">
+                    <div style="flex: 1"></div>
+                    <button id="characters__menu-button"></button>
+                </div>
+                <div id="bottombar__chat" class="display-none">
+                    <input id="chat__message-input" placeholder="Leave empty to get a reply">
+                    <button id="chat__send-message-button" class="display-none">Send</button>
+                    <button id="chat__receive-message-button">Receive</button>
+                    <button id="chat__menu-button"></button>
+                </div>
+                <div id="bottombar__image-generator" class="display-none">
+                    <div style="flex: 1"></div>
+                    <button id="image-generator__generate-button">Generate</button>
+                    <button id="image-generator__delete-button">Delete</button>
+                    <div style="flex: 1"></div>
+                    <button id="image-generator__menu-button"></button>
+                </div>
             </div>
-            <div id="bottombar" class="display-none">
-                <input id="message-input" placeholder="Leave empty to get a reply">
-                <button id="send-message-button" class="display-none">Send</button>
-                <button id="receive-message-button">Receive</button>
-                <button id="menu-button"></button>
-            </div>
-            <div id="menu-wrapper">
-                <div id="menu">
-                    <div class="item" id="settings-menu-item">Settings</div>
-                    <div class="item" id="clear-cache-menu-item">Clear Cache</div>
-                    <div class="item" id="clear-chat-menu-item">Clear Chat</div>
-                    <div class="item" id="translate-menu-item">Translate to <span data-lang style="font-weight: bold; "></span></div>
-                    <div class="item" id="back-to-home-menu-item">Back to Home</div>
+            <div id="menu-wrapper" class="hidden">
+                <div class="menu menu__characters hidden">
+                    <div class="item item__settings">Settings</div>
+                    <div class="item item__main-menu">Main Menu</div>
+                </div>
+                <div class="menu menu__chat hidden">
+                    <div class="item item__settings">Settings</div>
+                    <div class="item item__clear-cache">Refresh Chat</div>
+                    <div class="item item__clear-chat">Clear Chat</div>
+                    <div class="item item__leave-chat">Leave Chat</div>
+                </div>
+                <div class="menu menu__image-generator hidden">
+                    <div class="item item__settings">Settings</div>
+                    <div class="item item__main-menu">Main Menu</div>
                 </div>
             </div>
         </div>
-        <div class="overlay" id="menu-overlay"></div>
+        <div class="overlay hidden" id="menu-overlay"></div>
         <div class="overlay hidden" id="message-dialog-overlay">
             <div class="dialog" id="message-dialog">
                 <div class="title">Message</div>
                 <div class="content">
                     <div class="inner-content">
                         <div id="message-image">
-                            <button id="generate-image-button">Generate</button>
-                            <button id="delete-image-button">Delete</button>
+                            <div>
+                                <input id="custom-image-prompt" placeholder="Custom prompt (optional)">
+                            </div>
+                            <div>
+                                <button id="generate-image-button">Generate</button>
+                                <button id="delete-image-button">Delete</button>
+                            </div>
                         </div>
                         <div class="text"><textarea id="message-content-input"></textarea></div>
                         <button id="generate-message-button" style="display: block; margin: .5rem auto 0; ">
@@ -98,11 +152,27 @@
                             <div class="title">User Settings</div>
                             <div class="field">
                                 <label>Language</label>
-                                <input class="settings-field" data-bind="language" type="text" style="max-width: 3em; text-align: center; ">
+                                <select class="settings-field" data-bind="language">
+                                    <option value="EN">English</option>
+                                    <option value="DE">German</option>
+                                    <option value="ES">Spanish</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>Translation Client</label>
+                                <select class="settings-field" data-bind="translation-client">
+                                    <option value="">None</option>
+                                    <option value="DeepL">DeepL</option>
+                                    <option value="LibreTranslate">LibreTranslate</option>
+                                </select>
                             </div>
                             <div class="field">
                                 <label>DeepL Auth Key</label>
                                 <input class="settings-field" data-bind="deepl-auth-key" type="text">
+                            </div>
+                            <div class="field">
+                                <label>LibreTranslate URL</label>
+                                <input class="settings-field" data-bind="libretranslate-url" type="text">
                             </div>
                             <div class="field">
                                 <input class="settings-field" data-bind="auto-generate" type="checkbox">

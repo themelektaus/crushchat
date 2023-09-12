@@ -9,8 +9,10 @@
         'hide-images': "false",
         'csrf-token': "",
         'session-token': "",
+        'translation-client': "",
         'deepl-auth-key': "",
         'deepl-block-size': 10,
+        'libretranslate-url': "",
         'character-limit': 100,
         'message-limit': 800
     }
@@ -24,14 +26,11 @@ let currentPage = null
 let currentCharacter = null
 let currentMessage = null
 
-let hasAnyErrors = false
-let useCache = true
-
 const $_ = {
-    messageInput: q(`#message-input`),
-    sendMessageButton: q(`#send-message-button`),
-    receiveMessageButton: q(`#receive-message-button`),
+    chatMessageInput: q(`#chat__message-input`),
+    chatSendMessageButton: q(`#chat__send-message-button`),
+    chatReceiveMessageButton: q(`#chat__receive-message-button`),
     
     settingsDialog: q(`#settings-dialog`),
-    messageDialog: q(`#message-dialog`),
+    messageDialog: q(`#message-dialog`)
 }

@@ -2,7 +2,7 @@
 
 namespace CrushChatApi;
 
-public class DeepLClient : IDisposable
+public class DeepLClient : ITranslationClient
 {
     class Response
     {
@@ -29,7 +29,7 @@ public class DeepLClient : IDisposable
         List<Translation> translations = new();
         List<Translation> pending = new();
 
-        var languageFolder = Directory.CreateDirectory(Path.Combine("Data", "Translations", targetLanguage));
+        var languageFolder = Directory.CreateDirectory(Path.Combine("Data", "Translations", "DeepL", targetLanguage));
 
         foreach (var t in text)
         {
@@ -50,7 +50,12 @@ public class DeepLClient : IDisposable
         {
             var block = pending.Take(int.Parse(request.Headers["X-DeepL-Block-Size"])).ToList();
 
-            using var message = CreateMessage(sourceLanguage, targetLanguage, pending.Select(x => x.original).ToArray());
+            using var message = CreateMessage(
+                request.Headers["X-DeepL-Auth-Key"],
+                sourceLanguage,
+                targetLanguage,
+                pending.Select(x => x.original).ToArray()
+            );
 
             var result = await client.SendAsync(message);
 
@@ -85,10 +90,10 @@ public class DeepLClient : IDisposable
         client.Dispose();
     }
 
-    HttpRequestMessage CreateMessage(string sourceLanguage, string targetLanguage, string[] text)
+    static HttpRequestMessage CreateMessage(string authKey, string sourceLanguage, string targetLanguage, string[] text)
     {
         var message = new HttpRequestMessage(HttpMethod.Post, "/v2/translate");
-        message.Headers.Add("Authorization", $"DeepL-Auth-Key {request.Headers["X-DeepL-Auth-Key"]}");
+        message.Headers.Add("Authorization", $"DeepL-Auth-Key {authKey}");
 
         var json = "{\"text\":[" + string.Join(",", text.Select(x => x.ToJson())) + "],\"source_lang\":\"" + sourceLanguage + "\",\"target_lang\":\"" + targetLanguage + "\",\"formality\":\"prefer_less\"}";
         message.Content = new StringContent(json, Encoding.UTF8, "application/json");

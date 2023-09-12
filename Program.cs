@@ -1,13 +1,11 @@
 using CrushChatApi;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
+app.UseDefaultFiles();
 app.UseStaticFiles();
-app.MapFallbackToFile("index.html");
 
 
 
@@ -42,8 +40,9 @@ app.MapGet("/api/characters/{characterId}/messages", async (HttpRequest request,
     using var client = new CrushChatClient(request);
     return await client.GetCharacterMessagesAsync(
         characterId,
-        preferCache: request.GetQueryBoolean("cache"),
-        initialize: request.GetQueryBoolean("initialize")
+        preferCache: request.GetQueryBoolean("cache", true),
+        initialize: request.GetQueryBoolean("initialize", false),
+        translate: request.GetQueryBoolean("translate", false)
     );
 });
 
@@ -61,22 +60,25 @@ app.MapPost("/api/characters/{characterId}/messages", async (HttpRequest request
 
     if (request.NeedsTranslation(out var language))
     {
-        using var deeplClient = new DeepLClient(request);
-        var translations = await deeplClient.TranslateAsync(language, "EN-US", body);
+        using var translationClient = ITranslationClient.Create(request);
+        if (translationClient is not null)
+        {
+            var translations = await translationClient.TranslateAsync(language, "EN-US", body);
 
-        var translation = translations.FirstOrDefault();
-        if (translation is null)
-            return default;
+            var translation = translations.FirstOrDefault();
+            if (translation is null)
+                return default;
 
-        translations = await deeplClient.TranslateAsync("EN", language, translation.translation);
-        translation = translations.FirstOrDefault();
-        if (translation is null)
-            return default;
+            translations = await translationClient.TranslateAsync("EN", language, translation.translation);
+            translation = translations.FirstOrDefault();
+            if (translation is null)
+                return default;
 
-        if (string.IsNullOrEmpty(translation.translation))
-            return default;
+            if (string.IsNullOrEmpty(translation.translation))
+                return default;
 
-        body = translation.original;
+            body = translation.original;
+        }
     }
 
     using var client = new CrushChatClient(request);
@@ -103,22 +105,25 @@ app.MapPost("/api/characters/{characterId}/messages/{index}", async (HttpRequest
 
     if (request.NeedsTranslation(out var language))
     {
-        using var deeplClient = new DeepLClient(request);
-        var translations = await deeplClient.TranslateAsync(language, "EN-US", body);
+        using var translationClient = ITranslationClient.Create(request);
+        if (translationClient is not null)
+        {
+            var translations = await translationClient.TranslateAsync(language, "EN-US", body);
 
-        var translation = translations.FirstOrDefault();
-        if (translation is null)
-            return default;
+            var translation = translations.FirstOrDefault();
+            if (translation is null)
+                return default;
 
-        translations = await deeplClient.TranslateAsync("EN", language, translation.translation);
-        translation = translations.FirstOrDefault();
-        if (translation is null)
-            return default;
+            translations = await translationClient.TranslateAsync("EN", language, translation.translation);
+            translation = translations.FirstOrDefault();
+            if (translation is null)
+                return default;
 
-        if (string.IsNullOrEmpty(translation.translation))
-            return default;
+            if (string.IsNullOrEmpty(translation.translation))
+                return default;
 
-        body = translation.original;
+            body = translation.original;
+        }
     }
 
     using var client = new CrushChatClient(request);
@@ -130,47 +135,6 @@ app.MapPost("/api/characters/{characterId}/messages/{index}", async (HttpRequest
     var result = await client.PutMessageAsync(characterId, message);
 
     return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
-});
-
-#endregion
-
-
-
-#region GET /api/characters/{characterId}/messages/translate
-
-app.MapGet("/api/characters/{characterId}/messages/translate", async (HttpRequest request, string characterId) =>
-{
-    if (!request.NeedsTranslation(out var language))
-        return default;
-
-    using var client = new CrushChatClient(request);
-
-    var characters = await client.GetCharactersAsync();
-    var character = characters.FirstOrDefault(x => x.id == characterId);
-    if (character is null)
-        return default;
-
-    var text = new List<string>() {
-        character.description.Trim(),
-        character.persona.Trim()
-    };
-
-    character = await client.GetAsync<Character>($"/api/messages?characterId={characterId}&limit={request.Headers["X-Message-Limit"]}");
-    var messages = character.messages;
-    text.AddRange(messages.Select(x => x.content));
-
-    using var deeplClient = new DeepLClient(request);
-    await deeplClient.TranslateAsync("EN", language, text.ToArray());
-
-    characters = await client.GetCharactersAsync();
-    character = characters.FirstOrDefault(x => x.id == characterId);
-    if (character is null)
-        return default;
-
-    character.messages = messages;
-    character.TranslateTo(language);
-
-    return character;
 });
 
 #endregion
@@ -219,8 +183,9 @@ app.MapGet("/api/characters/{characterId}/messages/generate", async (HttpRequest
 
     if (request.NeedsTranslation(out var language))
     {
-        using var deeplClient = new DeepLClient(request);
-        await deeplClient.TranslateAsync("EN", language, status.reply);
+        using var translationClient = ITranslationClient.Create(request);
+        if (translationClient is not null)
+            await translationClient.TranslateAsync("EN", language, status.reply);
     }
 
     return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
@@ -271,8 +236,9 @@ app.MapGet("/api/characters/{characterId}/messages/generate/{index}", async (Htt
 
     if (request.NeedsTranslation(out var language))
     {
-        using var deeplClient = new DeepLClient(request);
-        await deeplClient.TranslateAsync("EN", language, status.reply);
+        using var translationClient = ITranslationClient.Create(request);
+        if (translationClient is not null)
+            await translationClient.TranslateAsync("EN", language, status.reply);
     }
 
     return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
@@ -325,30 +291,33 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
     var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
     var message = messages.FirstOrDefault(x => x.index == index);
 
+    string paidPrompt, prompt;
+
+    if (request.Headers.TryGetValue("X-Prompt", out var _prompt))
+    {
+        paidPrompt = _prompt.ToString().Replace("\"", "");
+        prompt = paidPrompt;
+    }
+    else
+    {
+        paidPrompt = $"\"{message.content.Replace("\"", "")}\",detailed,masterpiece";
+        prompt = $"\"{message.content.Replace("\"", "").Replace(',', '-')}\", nsfw, {character.imagePrompt}";
+    }
+
     var imageRequest = new ImageRequest
     {
         description = character.imagePrompt,
         isRealistic = false,
         justPrompt = true,
         paidGeneration = true,
-        paidPrompt = $"\"{message.content.Replace("\"", "")}\",detailed,masterpiece",
-        prompt = $"\"{message.content.Replace("\"", "").Replace(',', '-')}\", nsfw, {character.imagePrompt}"
+        paidPrompt = paidPrompt,
+        prompt = prompt
     };
 
-    var response = await client.GenerateImageAsync(characterId, imageRequest);
+    var imageInfo = await client.GenerateImageAsync(imageRequest);
 
-    ImageRequest.Status status;
-
-    for (; ; )
-    {
-        status = await client.GetAsync<ImageRequest.Status>($"/api/images/status/{response.id}");
-        if (status.status == "error" || status.status == "completed")
-            break;
-
-        await Task.Delay(3000);
-    }
-
-    message.image = status.reply.output.FirstOrDefault()?.image;
+    //message.image = imageInfo.originalUrl;
+    message.image = imageInfo.url;
 
     var result = await client.PutMessageAsync(characterId, message);
 
@@ -356,6 +325,89 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
         return default;
 
     return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+});
+
+#endregion
+
+
+
+#region GET /api/characters/{characterId}/messages/generate-image/{index}
+
+app.MapGet("/api/characters/{characterId}/generate-image/", async (HttpRequest request, string characterId) =>
+{
+    using var client = new CrushChatClient(request);
+    return await client.GenerateCharacterImageAsync(characterId);
+});
+
+#endregion
+
+
+
+#region GET /api/generate-image
+
+app.MapGet("/api/generate-image", async (HttpRequest request) =>
+{
+    if (!request.Headers.TryGetValue("X-Prompt", out var _prompt))
+        return Results.BadRequest();
+
+    var prompt = _prompt.ToString().Replace("\"", "");
+
+    using var client = new CrushChatClient(request);
+
+    var info = await client.GenerateImageAsync(new()
+    {
+        description = string.Empty,
+        isRealistic = request.GetQueryBoolean("realistic", false),
+        justPrompt = true,
+        paidGeneration = true,
+        paidPrompt = prompt,
+        prompt = prompt
+    });
+
+    return Results.Text(info.url);
+});
+
+#endregion
+
+
+
+#region GET /api/images
+
+app.MapGet("/api/images", () =>
+{
+    return Directory
+        .EnumerateFiles(Path.Combine("Data", "Images"), "*.json")
+        .Select(x => new FileInfo(x))
+        .OrderByDescending(x => x.CreationTimeUtc)
+        .Select(x =>
+        {
+            var info = File.ReadAllText(x.FullName).FromJson<ImageInfo>();
+            return info.Load(Path.GetFileNameWithoutExtension(x.FullName));
+        });
+});
+
+#endregion
+
+
+
+#region GET /api/images/{id}
+
+app.MapGet("/api/images/{id}", async (HttpRequest request, string id) =>
+{
+    var basePath = Path.Combine("Data", "Images", id);
+    if (request.GetQueryBoolean("delete", false))
+    {
+        if (File.Exists($"{basePath}.json"))
+            File.Delete($"{basePath}.json");
+
+        if (File.Exists($"{basePath}.png"))
+            File.Delete($"{basePath}.png");
+        
+        return Results.Ok();
+    }
+
+    var content = await File.ReadAllBytesAsync($"{basePath}.png");
+    return Results.File(content, contentType: "image/png");
 });
 
 #endregion

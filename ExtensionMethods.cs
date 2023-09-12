@@ -26,12 +26,15 @@ public static class ExtensionMethods
 
     public static string TranslateTo(this string @this, string targetLanguage)
     {
-        var path = Path.Combine("Data", "Translations", targetLanguage, $"{@this.Trim().ToLower().ToMD5()}.json");
+        var path = Path.Combine("Data", "Translations", "DeepL", targetLanguage, $"{@this.Trim().ToLower().ToMD5()}.json");
 
-        if (File.Exists(path))
-            return File.ReadAllText(path).FromJson<Translation>().translation;
+        if (!File.Exists(path))
+            path = Path.Combine("Data", "Translations", "LibreTranslate", targetLanguage, $"{@this.Trim().ToLower().ToMD5()}.json");
 
-        return null;
+        if (!File.Exists(path))
+            return null;
+
+        return File.ReadAllText(path).FromJson<Translation>().translation;
     }
 
     public static bool NeedsTranslation(this HttpRequest @this, out string language)

@@ -1,7 +1,7 @@
 ::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: none }
-::-webkit-scrollbar-thumb { background: #402 }
-::-webkit-scrollbar-thumb:hover { background: #503 }
+::-webkit-scrollbar-thumb { background: #603 }
+::-webkit-scrollbar-thumb:hover { background: #704 }
 
 ::placeholder { color: #957; }
 
@@ -20,7 +20,7 @@ body, #main {
     min-height: 100vh;
 }
 
-body, button, input {
+body, button, input, select {
     font-family: custom;
 }
 
@@ -28,7 +28,9 @@ div, textarea {
     box-sizing: border-box;
 }
 
-button:disabled, input:disabled {
+button:not(.hidden):disabled,
+input:not(.hidden):disabled,
+textarea:not(.hidden):disabled {
     opacity: .3 !important;
     cursor: default !important;
     background: #402 !important;
@@ -61,7 +63,7 @@ button:focus {
     outline: none;
 }
 
-input, textarea {
+input, textarea, select {
     border: 2px solid #603;
     outline: none;
     color: white;
@@ -70,17 +72,18 @@ input, textarea {
     min-width: 0;
 }
 
-input {
+input, select {
     border-radius: 1000px;
     padding: 0 1em;
     background: #090009;
 }
 
-input:focus {
+input:focus, select:focus {
     outline: 2px solid #a05;
 }
 
-input:not(:disabled):hover {
+input:not(:disabled):hover,
+select:not(:disabled):hover {
     outline: 2px solid #f39;
 }
 
@@ -116,24 +119,24 @@ html {
     max-width: 980px;
 }
 
-#content {
+.page {
     padding: 0 .75rem;
     font-size: 1.1em;
     line-height: 1.5;
 }
 
-#content > .section {
+.page .section {
     padding: 3rem 0 10rem;
 }
 
-#content > .section > .title {
+.page .section > .title {
     text-align: center;
     font-size: 2em;
     font-weight: normal;
 }
 
 #bottombar {
-    background: linear-gradient(0deg, #190919ff 0% , #190919ff 70%, #19091900 100%);
+    background: linear-gradient(0deg, #190919ff 0% , #190919ff 70%, #19091900 100%) !important;
     padding: 4rem 1rem 1rem;
     display: flex;
     gap: .5rem;
@@ -141,7 +144,13 @@ html {
     bottom: 0;
 }
 
-#message-input {
+#bottombar > div {
+    display: flex;
+    gap: .5rem;
+    width: 100%;
+}
+
+#chat__message-input {
     flex: 1;
 }
 
@@ -149,7 +158,7 @@ html {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
-    padding: 1rem 0 2rem;
+    padding: 1rem 2rem 2rem;
 }
 
 .characters .character {
@@ -172,7 +181,6 @@ html {
     width: 100%;
     aspect-ratio: 1;
     background-size: 100%;
-    background-repeat: no-repeat;
     border-radius: 50%;
 }
 
@@ -204,7 +212,6 @@ html {
     aspect-ratio: 3 / 1;
     background-size: cover;
     background-position: center 20%;
-    background-repeat: no-repeat;
     -webkit-mask-image: -webkit-gradient(linear, left center, left bottom, from(#000f), to(#0000));
 }
 
@@ -295,7 +302,6 @@ html {
     float: right;
     border-radius: .5rem;
     background-size: 100%;
-    background-repeat: no-repeat;
     margin: 0 0 0 1rem;
 }
 
@@ -345,6 +351,7 @@ html {
     flex-direction: column;
     
     background: #120910;
+    outline: 2px solid #6249;
 }
 
 .overlay .dialog button {
@@ -392,19 +399,41 @@ html {
     margin: 0 0 1rem;
     outline: 2px solid transparent;
     display: flex;
-    justify-content: center;
-    align-items: flex-end;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
     padding: 1rem;
     gap: .5rem;
 }
 
-#message-image button {
+#message-image > div {
+    display: flex;
+    gap: .5rem;
+    width: 100%;
+    justify-content: center;
     opacity: .5;
     transition: all 250ms;
 }
 
-#message-image:hover button {
-    opacity: unset;
+#message-image:hover > div {
+    opacity: 1;
+}
+
+#message-image > div > input {
+    padding-block: .5rem;
+    width: 100%;
+}
+
+#image-generator-image {
+    width: 100%;
+    aspect-ratio: 1;
+    background-size: 100%;
+    border-radius: 0.5rem;
+    margin: 0 0 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 #common-load-indicator {
@@ -415,7 +444,7 @@ html {
     pointer-events: none;
 }
 
-#message-load-indicator {
+#chat-load-indicator {
     display: flex;
     justify-content: center;
     pointer-events: none;
@@ -424,22 +453,26 @@ html {
 .load-indicator {
     width: 125px;
     aspect-ratio: 1;
-    background: url(../res/loading.svg) no-repeat !important;
-    background-size: 100% !important;
+    background: url(../res/loading.svg) no-repeat;
+    background-size: 100%;
 }
 
-#message-load-indicator .load-indicator {
+#chat-load-indicator .load-indicator {
     width: 80px;
 }
 
-#menu-button {
+#characters__menu-button,
+#chat__menu-button,
+#image-generator__menu-button {
     width: 2.75rem;
     aspect-ratio: 1;
     padding: 0;
     border-radius: 50%;
 }
 
-#menu-button::after {
+#characters__menu-button::after,
+#chat__menu-button::after,
+#image-generator__menu-button::after {
     content: '⫶';
     font-size: 1.5em;
     position: absolute;
@@ -454,7 +487,11 @@ html {
     z-index: 1;
 }
 
-#menu {
+#menu-wrapper.hidden * {
+    pointer-events: none;
+}
+
+.menu {
     pointer-events: all;
     background: #201;
     position: absolute;
@@ -464,12 +501,12 @@ html {
     overflow: hidden;
 }
 
-#menu .item {
+.menu .item {
     padding: .75rem;
     cursor: pointer;
 }
 
-#menu .item:hover {
+.menu .item:hover {
     background: #412;
 }
 
@@ -491,14 +528,15 @@ html {
 
 .field > label {
     display: block;
-    width: 9rem;
+    width: 10rem;
 }
 
 .field > label + * {
     flex: 1;
 }
 
-.field > input {
+.field > input,
+.field > select {
     display: block;
     padding-block: .5rem;
 }
@@ -514,12 +552,14 @@ input[type="checkbox"] {
     #main {
         padding-top: 0;
     }
-    #send-message-button,
-    #receive-message-button,
+    #chat__send-message-button,
+    #chat__receive-message-button,
     .field:has(.parse-tokens-from-clipboard) {
         display: none !important;
     }
     .characters {
+        padding-left: 0;
+        padding-right: 0;
         grid-template-columns: 1fr;
     }
     .persona {
@@ -531,4 +571,64 @@ input[type="checkbox"] {
     .messages {
         margin: 0;
     }
+}
+
+#image-generator-history-container {
+    position: relative;
+}
+
+#image-generator-history {
+    display: flex;
+    width: 100%;
+    overflow: scroll hidden;
+    gap: .5rem;
+    padding: .5rem 2px;
+    margin-bottom: .5rem;
+}
+
+.image-generator-history-fade {
+    height: 100%;
+    width: 7rem;
+    position: absolute;
+    top: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, #120910, transparent);
+    left: 0;
+}
+
+.image-generator-history-fade + .image-generator-history-fade {
+    background: linear-gradient(-90deg, #120910, transparent);
+    left: unset;
+    right: 0;
+}
+
+.image-generator-history__item {
+    height: 5rem;
+    aspect-ratio: 1;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    border-radius: .5rem;
+    cursor: pointer;
+}
+
+.image-generator-history__item:hover {
+    outline: 2px solid #ff3399;
+}
+
+.image-generator-history__item.active {
+    outline: 2px solid #ff66cc;
+}
+
+#image-generator-prompt-input {
+    height: 7.75rem;
+}
+
+.page__main {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    gap: 1rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }

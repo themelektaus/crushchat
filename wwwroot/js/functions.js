@@ -15,10 +15,17 @@ function query()
     return document.querySelectorAll(...arguments)
 }
 
-function toggleMenu()
+function toggleMenu(force)
 {
-    q(`#menu`).classList.toggle(`hidden`)
-    q(`#menu-overlay`).classList.toggle(`hidden`)
+    if (force === undefined)
+    {
+        q(`#menu-wrapper`).classList.toggle(`hidden`)
+        q(`#menu-overlay`).classList.toggle(`hidden`)
+        return
+    }
+    
+    q(`#menu-wrapper`).classList.toggle(`hidden`, !force)
+    q(`#menu-overlay`).classList.toggle(`hidden`, !force)
 }
 
 function preRefresh()
@@ -31,7 +38,7 @@ function preRefresh()
         if (localStorage.getItem('hide-images') != "true")
         {
             if (!$hideImage)
-            return
+                return
             
             document.head.removeChild($hideImage)
             return
@@ -42,238 +49,301 @@ function preRefresh()
         
         const style = create(`style`)
         style.id = hideImageId;
-        style.innerHTML = "*{background-image:none!important}"
+        style.innerHTML = `[data-has-image] {
+            background-size: unset !important;
+            background-image: url(res/checkers.svg) !important;
+        }`
         document.head.appendChild(style)
     })()
     
     q(`#common-load-indicator`).classList.remove(`display-none`)
-    query('[data-lang]').forEach(x => x.innerHTML = localStorage.getItem('language'))
     
     document.body.classList.add(`loading`)
-    query(`button, input`).forEach(x => x.disabled = true)
+    query(`button, input, textarea`).forEach(x => x.disabled = true)
 }
 
 function postRefresh()
 {
     document.body.classList.remove(`loading`)
+    query(`button, input, textarea`).forEach(x => x.disabled = false)
+    
     query(`.load-indicator`).forEach(x => x.parentElement.classList.add(`display-none`))
-    query(`button, input`).forEach(x => x.disabled = false)
     
-    if (currentCharacter)
-        $_.messageInput.focus()
-    
-    if (hasAnyErrors)
-        openSettingsDialog()
+    if (currentPage = `chat`)
+        $_.chatMessageInput.focus()
 }
 
-async function refreshCurrentPageAsync()
+async function refreshMainPage()
 {
-    switch (currentPage)
-    {
-        case `home`:
-            await refreshHomePageAsync()
-            break
-        
-        case `character`:
-            await refreshMessagesAsync()
-            break
-    }
+    currentPage = `main`
+    
+    query(`.page`).forEach(x => x.classList.add(`display-none`))
+    q(`.page__main`).classList.remove(`display-none`)
+    
+    q(`#bottombar__characters`).classList.add(`display-none`)
+    q(`#bottombar__chat`).classList.add(`display-none`)
+    q(`#bottombar__image-generator`).classList.add(`display-none`)
+    
+    query(`.menu`).forEach(x => x.classList.add(`hidden`))
+    
+    scrollUp()
 }
 
-async function refreshHomePageAsync()
+async function refreshCharactersPageAsync()
 {
-    q(`#common-load-indicator`).classList.remove(`display-none`)
-    q(`#bottombar`).classList.add(`display-none`)
+    currentPage = `characters`
     
-    q(`#content`).innerHTML = ``
+    query(`.page`).forEach(x => x.classList.add(`display-none`))
+    q(`.page__characters`).classList.remove(`display-none`)
     
-    try
-    {
-        await requestAsync(
-            `/api/characters`
-        ).then(
-            x => x.json()
-        ).then(
-            characters =>
+    q(`#bottombar__characters`).classList.remove(`display-none`)
+    q(`#bottombar__chat`).classList.add(`display-none`)
+    q(`#bottombar__image-generator`).classList.add(`display-none`)
+    
+    query(`.menu`).forEach(x => x.classList.add(`hidden`))
+    query(`.menu__characters`).forEach(x => x.classList.remove(`hidden`))
+    
+    scrollUp()
+    
+    q(`.page__characters`).innerHTML = ``
+    q(`.page__characters`).classList.remove(`display-none`)
+    
+    await requestAsync(
+        `/api/characters`
+    ).then(
+        x => x.json()
+    ).then(
+        characters =>
+        {
+            for (const category of [
+                { title: "Recent Characters", key: "recent" },
+                { title: "Private Characters", key: "private" },
+                { title: "Public Characters", key: "public" },
+            ])
             {
-                for (const category of [
-                    { title: "Recent Characters", key: "recent" },
-                    { title: "Private Characters", key: "private" },
-                    { title: "Public Characters", key: "public" },
-                ])
+                if (!characters[category.key]?.length)
+                    continue
+                
+                const $section = create(`div`)
+                $section.classList.add(`section`)
+                
+                const $title = create(`div`)
+                $title.classList.add(`title`)
+                $title.innerHTML = category.title
+                $section.appendChild($title)
+                
+                const $items = create(`div`)
+                $items.classList.add(`characters`)
+                $section.appendChild($items)
+                
+                for (const character of characters[category.key])
                 {
-                    if (!characters[category.key]?.length)
-                        continue
+                    const $item = create(`div`)
+                    $item.dataset.id = character.id
+                    $item.classList.add(`character`)
                     
-                    const $section = create(`div`)
-                    $section.classList.add(`section`)
-                    
-                    const $title = create(`div`)
-                    $title.classList.add(`title`)
-                    $title.innerHTML = category.title
-                    $section.appendChild($title)
-                    
-                    const $items = create(`div`)
-                    $items.classList.add(`characters`)
-                    $section.appendChild($items)
-                    
-                    for (const character of characters[category.key])
+                    $item.addEventListener(`click`, async () =>
                     {
-                        const $item = create(`div`)
-                        $item.dataset.id = character.id
-                        $item.classList.add(`character`)
+                        currentCharacter = character
                         
-                        $item.addEventListener(`click`, async () =>
-                        {
-                            q(`#content`).innerHTML = ``
-                            
-                            currentPage = `character`
-                            currentCharacter = character
-                            
-                            preRefresh()
-                            await refreshMessagesAsync({ cache: false, initialize: true })
-                            
-                            const language = localStorage.getItem("language")
-                            if (language && language != "EN" && !currentCharacter.descriptionTranslated)
-                            {
-                                await requestAsync(`/api/characters/${currentCharacter.id}/messages/translate`)
-                                    .then(x => x.json())
-                                    .then(async x =>
-                                    {
-                                        if (x)
-                                        {
-                                            currentCharacter = x
-                                            await refreshMessagesAsync()
-                                        }
-                                    })
-                            }
-                            postRefresh()
-                            
-                            scrollDown()
-                        })
+                        preRefresh()
+                        scrollUp()
                         
-                        $item.innerHTML = `
-                            <div class="thumbnail" style="background-image: url(${character.thumbnail})"></div>
-                            <div class="name">${character.name}</div>
-                            <div class="description">${character.descriptionTranslated || character.description}</div>
-                        `
+                        await refreshChatAsync()
+                        postRefresh()
                         
-                        $items.appendChild($item)
-                    }
+                        scrollDown()
+                    })
                     
-                    q(`#content`).appendChild($section)
+                    $item.innerHTML = `
+                        <div class="thumbnail" data-has-image style="background-image: url(${character.thumbnail})"></div>
+                        <div class="name">${character.name}</div>
+                        <div class="description">${character.descriptionTranslated || character.description}</div>
+                    `
+                    
+                    $items.appendChild($item)
                 }
+                
+                q(`.page__characters`).appendChild($section)
             }
-        )
-    }
-    catch (ex)
-    {
-        console.error(ex)
-        hasAnyErrors = true
-    }
+        }
+    )
 }
 
-async function refreshMessagesAsync(options)
+async function refreshChatAsync(options)
 {
+    currentPage = `chat`
+    
+    query(`.page:not(.page__chat)`).forEach(x => x.classList.add(`display-none`))
+    q(`.page__chat`).classList.remove(`display-none`)
+    
+    q(`#bottombar__characters`).classList.add(`display-none`)
+    q(`#bottombar__chat`).classList.remove(`display-none`)
+    q(`#bottombar__image-generator`).classList.add(`display-none`)
+    
+    query(`.menu`).forEach(x => x.classList.add(`hidden`))
+    query(`.menu__chat`).forEach(x => x.classList.remove(`hidden`))
+    
     options ??= { }
     options.cache ??= true
     options.initialize ??= false
-    
-    if (hasAnyErrors)
-        return
-    
-    q(`#bottombar`).classList.remove(`display-none`)
-    
-    try
-    {
-        await requestAsync(
-            `/api/characters/${currentCharacter.id}/messages?cache=${options.cache.toString()}&initialize=${options.initialize.toString()}`
-        ).then(
-            x => x.json()
-        ).then(
-            messages =>
+    options.translate ??= false
+
+    await requestAsync(
+        `/api/characters/${currentCharacter.id}/messages`
+            + `?cache=${options.cache.toString()}`
+            + `&initialize=${options.initialize.toString()}`
+            + `&translate=${options.translate.toString()}`
+    ).then(
+        x => x.json()
+    ).then(
+        messages =>
+        {
+            const showOriginalMessage = localStorage.getItem(`show-original-messages`) == "true"
+            
+            const $ul = create(`ul`)
+            $ul.classList.add(`messages`)
+            
+            for (const message of messages)
             {
-                const showOriginalMessage = localStorage.getItem(`show-original-messages`) == "true"
+                const isYou = message.role == 'You'
+                const name = isYou ? 'You' : currentCharacter.name.split(':').pop().trim()
+                const content = message.contentTranslated || message.content
+                const image = message.image
                 
-                const $ul = create(`ul`)
-                $ul.classList.add(`messages`)
+                const $li = create(`li`)
+                $li.classList.add(`message`)
+                $li.classList.add(isYou ? "you" : "bot")
                 
-                for (const message of messages)
+                if (image)
+                    $li.innerHTML += `<div class="image" style="background-image: url(${image})" data-has-image></div>`
+                
+                if (!isYou)
+                    $li.innerHTML += `<div class="avatar" style="background-image: url(${currentCharacter.thumbnail})" data-has-image></div>`
+                
+                $li.innerHTML += `<div class="name">${name}</div>`
+                $li.innerHTML += `<div class="text">${content}</div>`
+                
+                if (showOriginalMessage && message.contentTranslated)
+                    $li.innerHTML += `<div class="original">${message.content}</div>`
+                
+                $li.addEventListener(`click`, () =>
                 {
-                    const isYou = message.role == 'You'
-                    const name = isYou ? 'You' : currentCharacter.name.split(':').pop().trim()
-                    const content = message.contentTranslated || message.content
-                    const image = message.image
+                    if (isBusy())
+                        return
                     
-                    const $li = create(`li`)
-                    $li.classList.add(`message`)
-                    $li.classList.add(isYou ? "you" : "bot")
+                    currentMessage = message
+                    
+                    q(`#message-content-input`).value = content
+                    
+                    $_.messageDialog.parentElement.classList.remove(`hidden`)
                     
                     if (image)
-                        $li.innerHTML += `<div class="image" style="background-image: url(${image})"></div>`
-                    
-                    if (!isYou)
-                        $li.innerHTML += `<div class="avatar" style="background-image: url(${currentCharacter.thumbnail})"></div>`
-                    
-                    $li.innerHTML += `<div class="name">${name}</div>`
-                    $li.innerHTML += `<div class="text">${content}</div>`
-                    
-                    if (showOriginalMessage && message.contentTranslated)
-                        $li.innerHTML += `<div class="original">${message.content}</div>`
-                    
-                    $li.addEventListener(`click`, () =>
                     {
-                        if (document.body.classList.contains('loading'))
-                            return
-                        
-                        currentMessage = message
-                        
-                        q(`#message-content-input`).value = content
-                        
-                        $_.messageDialog.parentElement.classList.remove(`hidden`)
-                        
-                        if (image)
-                            q(`#message-image`).style = `background-image: url(${image})`
-                        else
-                            q(`#message-image`).style = `outline-color: #fff2; outline-style: dashed; `
-                        
-                        if (isYou)
-                            q(`#generate-image-button`).classList.add(`display-none`)
-                        else
-                            q(`#generate-image-button`).classList.remove(`display-none`)
-                        
-                    })
+                        q(`#message-image`).dataset.hasImage = true
+                        q(`#message-image`).style = `background-image: url(${image})`
+                    }
+                    else
+                    {
+                        delete q(`#message-image`).dataset.hasImage
+                        q(`#message-image`).style = `outline-color: #fff2; outline-style: dashed; `
+                    }
                     
-                    $ul.appendChild($li)
-                }
+                    q(`#custom-image-prompt`).value = ``
+                    
+                    if (isYou)
+                    {
+                        q(`#custom-image-prompt`).classList.add(`display-none`)
+                        q(`#generate-image-button`).classList.add(`display-none`)
+                    }
+                    else
+                    {
+                        q(`#custom-image-prompt`).classList.remove(`display-none`)
+                        q(`#generate-image-button`).classList.remove(`display-none`)
+                    }
+                })
                 
-                q(`#content`).innerHTML = `<div class="persona">
-                    <div class="image" style="background-image: url(${currentCharacter.thumbnail})"></div>
-                    <div class="name">${currentCharacter.name}</div>
-                    <div>${currentCharacter.personaTranslated || currentCharacter.persona}</div>
-                </div>`
-                
-                q(`#content`).appendChild($ul)
+                $ul.appendChild($li)
             }
-        )
-    }
-    catch (ex)
+            
+            q(`#chat`).innerHTML = `<div class="persona">
+                <div class="image" data-has-image style="background-image: url(${currentCharacter.thumbnail})"></div>
+                <div class="name">${currentCharacter.name}</div>
+                <div>${currentCharacter.personaTranslated || currentCharacter.persona}</div>
+            </div>`
+            
+            q(`#chat`).appendChild($ul)
+        }
+    )
+}
+
+async function refreshImageGeneratorPageAsync()
+{
+    currentPage = `image-generator`
+    
+    query(`.page`).forEach(x => x.classList.add(`display-none`))
+    q(`.page__image-generator`).classList.remove(`display-none`)
+    
+    q(`#bottombar__characters`).classList.add(`display-none`)
+    q(`#bottombar__chat`).classList.add(`display-none`)
+    q(`#bottombar__image-generator`).classList.remove(`display-none`)
+    
+    query(`.menu`).forEach(x => x.classList.add(`hidden`))
+    query(`.menu__image-generator`).forEach(x => x.classList.remove(`hidden`))
+    
+    const $history = q(`#image-generator-history`)
+    $history.innerHTML = ``
+    
+    q(`#image-generator-image`).style = ``
+    
+    const images = await requestAsync(`/api/images`).then(x => x.json())
+    
+    const $firstItem = create(`div`)
+    $firstItem.style = `min-width: 7rem; `
+    $history.appendChild($firstItem)
+    
+    for (const image of images)
     {
-        console.error(ex)
-        hasAnyErrors = true
+        const $item = create(`div`)
+        $item.classList.add(`image-generator-history__item`)
+        $item.dataset.hasImage = true
+        $item.style.backgroundImage = `url(${image.url})`
+        $item.addEventListener(`click`, () =>
+        {
+            if (isBusy())
+                return
+            
+            query(`.image-generator-history__item`).forEach(x => x.classList.remove(`active`))
+            $item.classList.add(`active`)
+            
+            q(`#image-generator-image`).dataset.id = image.id
+            q(`#image-generator-image`).style = `background-image: url(${image.url})`
+            q(`#image-generator-realistic-toggle`).checked = image.request.isRealistic
+            q(`#image-generator-prompt-input`).value = image.request.prompt
+        })
+        $history.appendChild($item)
     }
+    
+    const $item = create(`div`)
+    $item.style = `min-width: 7rem; `
+    $history.appendChild($item)
+}
+
+function scrollUp()
+{
+    window.scrollTo({ top: 0 })
 }
 
 function scrollDown()
 {
-    window.scrollTo({ top: q(`#content`).scrollHeight, behavior: "smooth" })
+    window.scrollTo({ top: q(`.page__chat`).scrollHeight, behavior: "smooth" })
 }
 
 function refreshSendMessageButton()
 {
-    const hasValue = $_.messageInput.value.trim()
-    $_.sendMessageButton.classList.toggle(`display-none`, !hasValue)
-    $_.receiveMessageButton.classList.toggle(`display-none`, hasValue)
+    const hasValue = $_.chatMessageInput.value.trim()
+    $_.chatSendMessageButton.classList.toggle(`display-none`, !hasValue)
+    $_.chatReceiveMessageButton.classList.toggle(`display-none`, hasValue)
 }
 
 function openSettingsDialog()
@@ -293,20 +363,13 @@ function openSettingsDialog()
                 break
         }
     })
+    
+    q(`[data-bind="translation-client"]`).dispatchEvent(new Event('change'))
 }
 
-async function closeSettingsDialogAsync()
+function closeSettingsDialog()
 {
     $_.settingsDialog.parentElement.classList.add(`hidden`)
-    
-    if (hasAnyErrors)
-    {
-        hasAnyErrors = false
-        
-        preRefresh()
-        await refreshHomePageAsync()
-        postRefresh()
-    }
 }
 
 function requestAsync(url, options)
@@ -319,8 +382,10 @@ function requestAsync(url, options)
     
     h['X-CSRF-Token'] = localStorage.getItem('csrf-token')
     h['X-Session-Token'] = localStorage.getItem('session-token')
+    h['X-Translation-Client'] = localStorage.getItem('translation-client')
     h['X-DeepL-Auth-Key'] = localStorage.getItem('deepl-auth-key')
     h['X-DeepL-Block-Size'] = localStorage.getItem('deepl-block-size')
+    h['X-LibreTranslate-URL'] = localStorage.getItem('libretranslate-url')
     h['X-Character-Limit'] = localStorage.getItem('character-limit')
     h['X-Message-Limit'] = localStorage.getItem('message-limit')
     h['X-Language'] = localStorage.getItem('language')
@@ -345,4 +410,9 @@ async function parseTokensFromClipboardAsync()
         if (cookie.name == '__Secure-next-auth.session-token')
             q('[data-bind="session-token"]').value = cookie.value
     }
+}
+
+function isBusy()
+{
+    return document.body.classList.contains(`loading`)
 }
