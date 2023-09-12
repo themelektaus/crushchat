@@ -641,7 +641,6 @@ input[type="checkbox"] {
 [data-dialog="message"] > .content > .image.empty
 {
     outline: 2px dashed var(--dialog__border-color__empty-image);
-    height: 5.5rem;
 }
 
 [data-dialog="message"] > .content > .image > div {
