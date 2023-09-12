@@ -1,199 +1,244 @@
 <!DOCTYPE html>
 <html>
+    
     <head>
         <meta charset="UTF-8">
         <title>My CrushChat Client</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css">
-        <script src="js/functions.js" defer></script>
-        <script src="js/setup.js" defer></script>
-        <script src="js/events.js" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=20230912002">
+        <script src="js/script.js?v=20230912002" defer></script>
     </head>
-    <body>
+    
+    <body class="display-none">
+        
         <div id="main">
-            <div class="page page__main">
-                <button id="page-main__characters">Characters</button>
-                <button id="page-main__image-generator">Image Generator</button>
-                <button id="page-main__settings">Settings</button>
+            
+            
+            <!-- Home Page -->
+            
+            <div data-page="home">
+                <h2>My CrushChat Client</h2>
+                <button data-action="gotoPageAsync" data-target="characters">Characters</button>
+                <button data-action="gotoPageAsync" data-target="imageGenerator">Image Generator</button>
+                <button data-action="openDialog" data-target="settings">Settings</button>
             </div>
-            <div class="page page__characters display-none">
-                
-            </div>
-            <div class="page page__chat display-none">
-                <div id="chat"></div>
-                <div id="chat-load-indicator" class="display-none">
-                    <div class="load-indicator"></div>
-                </div>
-            </div>
-            <div class="page page__image-generator display-none">
-                <div class="section" style="padding: 0; ">
-                    <div class="title">Image Generator</div>
-                    <div class="content">
-                        <div id="image-generator-history-container">
-                            <div id="image-generator-history"></div>
-                            <div class="image-generator-history-fade"></div>
-                            <div class="image-generator-history-fade"></div>
-                        </div>
-                        <div id="image-generator-image" data-has-image></div>
-                        <div class="text">
-                            <div class="field">
-                                <input id="image-generator-realistic-toggle" type="checkbox">
-                                <div>Realistic</div>
+            
+            
+            <!-- Characters Page -->
+            
+            <div data-page="characters">
+                <div class="characters">
+                    <div class="section">
+                        <div class="title"></div>
+                        <div class="content">
+                            <div>
+                                <div class="thumbnail"></div>
+                                <div class="name"></div>
+                                <div class="description"></div>
                             </div>
-                            <textarea id="image-generator-prompt-input"></textarea>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div id="common-load-indicator" class="display-none">
-                <div class="load-indicator"></div>
-            </div>
-            <div id="bottombar">
-                <div id="bottombar__characters" class="display-none">
-                    <div style="flex: 1"></div>
-                    <button id="characters__menu-button"></button>
-                </div>
-                <div id="bottombar__chat" class="display-none">
-                    <input id="chat__message-input" placeholder="Leave empty to get a reply">
-                    <button id="chat__send-message-button" class="display-none">Send</button>
-                    <button id="chat__receive-message-button">Receive</button>
-                    <button id="chat__menu-button"></button>
-                </div>
-                <div id="bottombar__image-generator" class="display-none">
-                    <div style="flex: 1"></div>
-                    <button id="image-generator__generate-button">Generate</button>
-                    <button id="image-generator__delete-button">Delete</button>
-                    <div style="flex: 1"></div>
-                    <button id="image-generator__menu-button"></button>
+                <div class="bottombar">
+                    <div class="flex-1"></div>
+                    <button data-action="pages.characters.openMenu" class="menu-button"></button>
+                    <div class="overlay"></div>
+                    <div class="menu">
+                        <div data-action="gotoPageAsync" data-target="home">Home</div>
+                        <div data-action="openDialog" data-target="settings">Settings</div>
+                    </div>
                 </div>
             </div>
-            <div id="menu-wrapper" class="hidden">
-                <div class="menu menu__characters hidden">
-                    <div class="item item__settings">Settings</div>
-                    <div class="item item__main-menu">Main Menu</div>
+            
+            
+            <!-- Chat Page -->
+            
+            <div data-page="chat">
+                <div class="persona">
+                    <div class="background"></div>
+                    <div class="content">
+                        <div class="name"></div>
+                        <div class="description"></div>
+                    </div>
                 </div>
-                <div class="menu menu__chat hidden">
-                    <div class="item item__settings">Settings</div>
-                    <div class="item item__clear-cache">Refresh Chat</div>
-                    <div class="item item__clear-chat">Clear Chat</div>
-                    <div class="item item__leave-chat">Leave Chat</div>
+                <div class="messages">
+                    <div class="message">
+                        <div class="avatar-wrapper">
+                            <div class="avatar"></div>
+                        </div>
+                        <div class="content">
+                            <div class="name"></div>
+                            <div class="text"></div>
+                            <div class="original"></div>
+                        </div>
+                        <div class="image-wrapper">
+                            <div class="image"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="menu menu__image-generator hidden">
-                    <div class="item item__settings">Settings</div>
-                    <div class="item item__main-menu">Main Menu</div>
+                <div class="loader"></div>
+                <div class="bottombar">
+                    <input data-bind="pages.chat.message" placeholder="Leave empty to get a reply">
+                    <button data-action="pages.chat.sendMessageAsync"></button>
+                    <button data-action="pages.chat.openMenu" class="menu-button"></button>
+                    <div class="overlay"></div>
+                    <div class="menu">
+                        <div data-action="openDialog" data-target="settings">Settings</div>
+                        <div data-action="pages.chat.refreshChatAsync">Refresh Chat</div>
+                        <div data-action="pages.chat.clearChatAsync">Clear Chat</div>
+                        <div data-action="gotoPageAsync" data-target="characters">Leave Chat</div>
+                    </div>
                 </div>
+            </div>
+            
+            
+            <!-- Image Generator Page -->
+            
+            <div data-page="imageGenerator">
+                <div class="title">Image Generator</div>
+                <div class="content">
+                    <div class="history">
+                        <div class="content"></div>
+                        <div class="fade"></div>
+                        <div class="fade"></div>
+                    </div>
+                    <div class="image"></div>
+                    <div class="field">
+                        <input data-bind="isRealistic" type="checkbox">
+                        <div>Realistic</div>
+                    </div>
+                    <textarea data-bind="prompt"></textarea>
+                </div>
+                <div class="bottombar">
+                    <div class="flex-1"></div>
+                    <button data-action="pages.imageGenerator.generateAsync">Generate</button>
+                    <button data-action="pages.imageGenerator.deleteAsync">Delete</button>
+                    <div class="flex-1"></div>
+                    <button data-action="pages.imageGenerator.openMenu" class="menu-button"></button>
+                    <div class="overlay"></div>
+                    <div class="menu">
+                        <div data-action="gotoPageAsync" data-target="home">Home</div>
+                        <div data-action="openDialog" data-target="settings">Settings</div>
+                    </div>
+                </div>
+            </div>
+            <div class="loader"></div>
+        </div>
+        
+        
+        <!-- Message Dialog -->
+        
+        <div class="overlay"></div>
+        <div data-dialog="message">
+            <div class="title">Message</div>
+            <div class="content">
+                <div class="image">
+                    <div>
+                        <input data-bind="imagePrompt" placeholder="Custom image prompt (optional)">
+                    </div>
+                    <div>
+                        <button data-action="dialogs.message.generateImageAsync">Generate</button>
+                        <button data-action="dialogs.message.deleteImageAsync">Delete</button>
+                    </div>
+                </div>
+                <textarea data-bind="content"></textarea>
+                <button data-action="dialogs.message.generateMessage">
+                    Regenerate Message
+                </button>
+            </div>
+            <div class="bottom">
+                <button data-action="dialogs.message.saveAsync">Save</button>
+                <button data-action="dialogs.message.deleteAsync">Delete</button>
+                <button data-action="dialogs.message.cancel">Cancel</button>
             </div>
         </div>
-        <div class="overlay hidden" id="menu-overlay"></div>
-        <div class="overlay hidden" id="message-dialog-overlay">
-            <div class="dialog" id="message-dialog">
-                <div class="title">Message</div>
-                <div class="content">
-                    <div class="inner-content">
-                        <div id="message-image">
-                            <div>
-                                <input id="custom-image-prompt" placeholder="Custom prompt (optional)">
-                            </div>
-                            <div>
-                                <button id="generate-image-button">Generate</button>
-                                <button id="delete-image-button">Delete</button>
-                            </div>
-                        </div>
-                        <div class="text"><textarea id="message-content-input"></textarea></div>
-                        <button id="generate-message-button" style="display: block; margin: .5rem auto 0; ">
-                            Regenerate Message
+        
+        
+        <!-- Settings Dialog -->
+        
+        <div class="overlay"></div>
+        <div data-dialog="settings">
+            <div class="title">Settings</div>
+            <div class="content">
+                <div class="section">
+                    <div class="title">CrushChat Cookies</div>
+                    <div class="field">
+                        <label>CSRF Token</label>
+                        <input data-bind="csrfToken" type="text">
+                    </div class="field">
+                    <div class="field">
+                        <label>Session Token</label>
+                        <input data-bind="sessionToken" type="text">
+                    </div>
+                    <div class="field">
+                        <label></label>
+                        <button data-action="dialogs.settings.parseTokensFromClipboardAsync">
+                            Parse from Clipboard
                         </button>
                     </div>
-                    <div class="buttons">
-                        <button id="save-message-button">Save</button>
-                        <button id="delete-message-button">Delete</button>
-                        <button id="cancel-message-button">Cancel</button>
+                    <div class="field display-none important">
+                        <label>Character Limit</label>
+                        <input data-bind="characterLimit" type="text">
+                    </div>
+                    <div class="field display-none important">
+                        <label>Message Limit</label>
+                        <input data-bind="messageLimit" type="text">
+                    </div>
+                </div>
+                <div class="section display-none">
+                    <div class="title">DeepL</div>
+                    <div class="field">
+                        <label>Block Size</label>
+                        <input data-bind="deeplBlockSize" type="text">
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="title">User Settings</div>
+                    <div class="field">
+                        <label>Language</label>
+                        <select data-bind="language">
+                            <option value="EN">English</option>
+                            <option value="DE">German</option>
+                            <option value="ES">Spanish</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Translation Client</label>
+                        <select data-bind="translationClient">
+                            <option value="">None</option>
+                            <option value="DeepL">DeepL</option>
+                            <option value="LibreTranslate">LibreTranslate</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>DeepL Auth Key</label>
+                        <input data-bind="deeplAuthKey" type="text">
+                    </div>
+                    <div class="field">
+                        <label>LibreTranslate URL</label>
+                        <input data-bind="libreTranslateUrl" type="text">
+                    </div>
+                    <div class="field">
+                        <input data-bind="autoGenerate" type="checkbox">
+                        <div>Get Auto Reply</div>
+                    </div>
+                    <div class="field">
+                        <input data-bind="showOriginalMessages" type="checkbox">
+                        <div>Show Original Messages</div>
+                    </div>
+                    <div class="field">
+                        <input data-bind="hideImages" type="checkbox">
+                        <div>Hide Images</div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="overlay hidden">
-            <div class="dialog" id="settings-dialog">
-                <div class="title">Settings</div>
-                <div class="content">
-                    <div class="inner-content">
-                        <div class="section">
-                            <div class="title">CrushChat Cookies</div>
-                            <div class="field">
-                                <label>CSRF Token</label>
-                                <input class="settings-field" data-bind="csrf-token" type="text">
-                            </div class="field">
-                            <div class="field">
-                                <label>Session Token</label>
-                                <input class="settings-field" data-bind="session-token" type="text">
-                            </div>
-                            <div class="field">
-                                <label></label>
-                                <button class="parse-tokens-from-clipboard">Paste from Clipboard</button>
-                            </div>
-                            <div style="height: 1rem; "></div>
-                            <div class="field display-none">
-                                <label>Character Limit</label>
-                                <input class="settings-field" data-bind="character-limit" type="text">
-                            </div>
-                            <div class="field display-none">
-                                <label>Message Limit</label>
-                                <input class="settings-field" data-bind="message-limit" type="text">
-                            </div>
-                        </div>
-                        <div class="section display-none">
-                            <div class="title">DeepL</div>
-                            <div class="field">
-                                <label>Block Size</label>
-                                <input class="settings-field" data-bind="deepl-block-size" type="text">
-                            </div>
-                        </div>
-                        <div class="section">
-                            <div class="title">User Settings</div>
-                            <div class="field">
-                                <label>Language</label>
-                                <select class="settings-field" data-bind="language">
-                                    <option value="EN">English</option>
-                                    <option value="DE">German</option>
-                                    <option value="ES">Spanish</option>
-                                </select>
-                            </div>
-                            <div class="field">
-                                <label>Translation Client</label>
-                                <select class="settings-field" data-bind="translation-client">
-                                    <option value="">None</option>
-                                    <option value="DeepL">DeepL</option>
-                                    <option value="LibreTranslate">LibreTranslate</option>
-                                </select>
-                            </div>
-                            <div class="field">
-                                <label>DeepL Auth Key</label>
-                                <input class="settings-field" data-bind="deepl-auth-key" type="text">
-                            </div>
-                            <div class="field">
-                                <label>LibreTranslate URL</label>
-                                <input class="settings-field" data-bind="libretranslate-url" type="text">
-                            </div>
-                            <div class="field">
-                                <input class="settings-field" data-bind="auto-generate" type="checkbox">
-                                <div>Get Auto Reply</div>
-                            </div>
-                            <div class="field">
-                                <input class="settings-field" data-bind="show-original-messages" type="checkbox">
-                                <div>Show Original Messages</div>
-                            </div>
-                            <div class="field">
-                                <input class="settings-field" data-bind="hide-images" type="checkbox">
-                                <div>Hide Images</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="buttons">
-                        <button id="save-settings-button">Save</button>
-                        <button id="cancel-settings-button">Cancel</button>
-                    </div>
-                </div>
+            <div class="bottom">
+                <button data-action="dialogs.settings.save">Save</button>
+                <button data-action="dialogs.settings.cancel">Cancel</button>
             </div>
         </div>
+        
+        
     </body>
+    
 </html>
