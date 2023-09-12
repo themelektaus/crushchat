@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title>My CrushChat Client</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=20230912002">
-        <script src="js/script.js?v=20230912002" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=20230912003">
+        <script src="js/script.js?v=20230912003" defer></script>
     </head>
     
     <body class="display-none">
@@ -31,7 +31,7 @@
                     <div class="section">
                         <div class="title"></div>
                         <div class="content">
-                            <div>
+                            <div class="character">
                                 <div class="thumbnail"></div>
                                 <div class="name"></div>
                                 <div class="description"></div>
@@ -40,7 +40,7 @@
                     </div>
                 </div>
                 <div class="bottombar">
-                    <div class="flex-1"></div>
+                    <input data-bind="search" class="flex-1" placeholder="Search">
                     <button data-action="pages.characters.openMenu" class="menu-button"></button>
                     <div class="overlay"></div>
                     <div class="menu">
@@ -78,7 +78,7 @@
                 </div>
                 <div class="loader"></div>
                 <div class="bottombar">
-                    <input data-bind="pages.chat.message" placeholder="Leave empty to get a reply">
+                    <input data-bind="message" class="flex-1" placeholder="Leave empty to get a reply">
                     <button data-action="pages.chat.sendMessageAsync"></button>
                     <button data-action="pages.chat.openMenu" class="menu-button"></button>
                     <div class="overlay"></div>

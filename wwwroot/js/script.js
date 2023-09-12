@@ -241,7 +241,7 @@ Object.defineProperties(EventTarget.prototype,
             enableInput(false)
         }
     },
-    translateAsync:
+    transitionAsync:
     {
         value: async function(options)
         {
@@ -677,7 +677,7 @@ class App
             if (currentPage.$bottombar)
                 currentPage.$bottombar.addClass(`hidden`)
             
-            await $page.translateAsync({
+            await $page.transitionAsync({
                 duration: 200,
                 from: { opacity: 1, translate: `0 0` },
                 to: { opacity: 0, translate: `0 30px` }
@@ -700,7 +700,7 @@ class App
         if (!nextPage.onPostLoadAsync)
             this.stopLoading()
         
-        await $page.translateAsync({
+        await $page.transitionAsync({
             duration: 200,
             from: { opacity: 0, translate: `0 -30px` },
             to: { opacity: 1, translate: `0 0` }
@@ -770,7 +770,9 @@ class App
     {
         let error = false
         
-        const characters = await fetchAsync(`/api/characters?cache=${this.useCache ?? false}`)
+        
+        
+        const characters = await fetchAsync(`/api/characters?cache=${this.useCache ?? location.hostname == `localhost`}`)
             .then(x => x.json())
             .catch(() => error = true)
         
@@ -870,6 +872,9 @@ class CharactersPage extends Page
         
         this.$sectionTemplate.remove()
         this.$characterTemplate.remove()
+        
+        this.$search = this.$bottombar.query(`[data-bind="search"]`)
+        this.$search.on(`input`, () => this.#refreshSearchResults())
     }
     
     async onLoadAsync()
@@ -881,14 +886,21 @@ class CharactersPage extends Page
         this.#addCharacter(characters, `recent`, `Recent Characters`)
         this.#addCharacter(characters, `private`, `Private Characters`)
         this.#addCharacter(characters, `public`, `Public Characters`)
+        
+        this.#refreshSearchResults(true)
+    }
+    
+    async onPostLoadAsync()
+    {
+        enableInput()
+        
+        this.$search.focus()
     }
     
     #addCharacter(characters, key, title)
     {
         if (!characters[key]?.length)
-        {
             return
-        }
         
         const $section = this.$sectionTemplate.clone().removeClass(`display-none`)
         $section.query(`.title`).setHtml(title)
@@ -911,6 +923,30 @@ class CharactersPage extends Page
         }
         
         this.$characters.add($section)
+    }
+    
+    #refreshSearchResults(immediately)
+    {
+        const callback = () =>
+        {
+            this.$characters.queryAll(`.character`).forEach($ =>
+            {
+                const search = this.$search.value.toLowerCase().trim()
+                const name = $.query(`.name`).innerText.toLowerCase()
+                const description = $.query(`.description`).innerText.toLowerCase()
+                const hidden = name.indexOf(search) == -1 && description.indexOf(search) == -1
+                $.toggleClass(`display-none`, hidden)
+                $.toggleClass(`important`, hidden)
+            })
+        }
+        
+        if (immediately)
+        {
+            callback()
+            return
+        }
+        
+        startTimeout(`search`, callback, 500)
     }
 }
 
@@ -983,7 +1019,7 @@ class ChatPage extends Page
         if (!App.instance.isLoading())
             this.$loader.removeClass(`display-none`)
         
-        this.$message = this.$bottombar.query(`[data-bind="pages.chat.message"]`)
+        this.$message = this.$bottombar.query(`[data-bind="message"]`)
             .on(`input`, this.refreshSendMessageButton.bind(this))
             .on(`keydown`, this.onKeyDown.bind(this))
         

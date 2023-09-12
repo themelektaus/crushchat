@@ -519,11 +519,6 @@ input[type="checkbox"] {
     margin: 0 auto;
 }
 
-[data-bind="pages.chat.message"] {
-    flex: 1;
-    padding: 0 1rem;
-}
-
 [data-page="imageGenerator"] {
     padding: 3rem 0 7rem;
 }
