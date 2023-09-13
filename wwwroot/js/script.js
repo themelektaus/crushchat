@@ -5,24 +5,326 @@
 (function()
 {
     const items = {
-        'language': "EN",
-        'autoGenerate': "true",
-        'showOriginalMessages': "false",
-        'hideImages': "false",
-        'csrfToken': "",
-        'sessionToken': "",
-        'translationClient': "",
-        'deeplAuthKey': "",
-        'deeplBlockSize': 10,
-        'libreTranslateUrl': "",
-        'characterLimit': 100,
-        'messageLimit': 800
+        language: "EN",
+        autoGenerate: "true",
+        showOriginalMessages: "false",
+        blurImages: "false",
+        hideImages: "false",
+        csrfToken: "",
+        sessionToken: "",
+        translationClient: "",
+        deeplAuthKey: "",
+        deeplBlockSize: 10,
+        libreTranslateUrl: "",
+        characterLimit: 100,
+        messageLimit: 800
     }
     
     for (const key in items)
         if (localStorage.getItem(key) === null)
             localStorage.setItem(key, items[key])
 })()
+
+
+
+let cssRootDefault =
+[
+    {
+        category: "Body",
+        values: [
+            {
+                name: "Text",
+                type: "color",
+                key: "--body__text-color",
+                value: "#FFFFFF"
+            },
+            {
+                name: "Background",
+                type: "color",
+                key: "--body__background-color",
+                value: "#160711"
+            }
+        ]
+    },
+    {
+        category: "Main",
+        values: [
+            {
+                name: "Background",
+                type: "color",
+                key: "--main__background-color",
+                value: "#000000",
+                alpha: 0.0
+            }
+        ]
+    },
+    {
+        category: "Button",
+        values: [
+            {
+                name: "Text",
+                type: "color",
+                key: "--button__text-color",
+                value: "#FFFFFF"
+            },
+            {
+                name: "Text (Hover)",
+                type: "color",
+                key: "--button__text-color__hover",
+                value: "#FFFFFF"
+            },
+            {
+                name: "Text (Active)",
+                type: "color",
+                key: "--button__text-color__active",
+                value: "#FFFFFF"
+            },
+            {
+                name: "Background",
+                type: "color",
+                key: "--button__background-color",
+                value: "#440022"
+            },
+            {
+                name: "Background (Hover)",
+                type: "color",
+                key: "--button__background-color__hover",
+                value: "#440022"
+            },
+            {
+                name: "Background (Active)",
+                type: "color",
+                key: "--button__background-color__active",
+                value: "#550044"
+            },
+            {
+                name: "Border",
+                type: "color",
+                key: "--button__border-color",
+                value: "#440022"
+            },
+            {
+                name: "Border (Hover)",
+                type: "color",
+                key: "--button__border-color__hover",
+                value: "#FF3399"
+            },
+            {
+                name: "Border (Active)",
+                type: "color",
+                key: "--button__border-color__active",
+                value: "#FF3399"
+            }
+        ]
+    },
+    {
+        category: "Menu Item",
+        values: [
+            {
+                name: "Background",
+                type: "color",
+                key: "--menu-item__background-color",
+                value: "#440022"
+            },
+            {
+                name: "Background (Hover)",
+                type: "color",
+                key: "--menu-item__background-color__hover",
+                value: "#551133"
+            }
+        ]
+    },
+    {
+        category: "Input",
+        values: [
+            {
+                name: "Text",
+                type: "color",
+                key: "--input__text-color",
+                value: "#FFFFFF"
+            },
+            {
+                name: "Text (Hover)",
+                type: "color",
+                key: "--input__text-color__placeholder",
+                value: "#995577"
+            },
+            {
+                name: "Background",
+                type: "color",
+                key: "--input__background-color",
+                value: "#090009"
+            },
+            {
+                name: "Background (Hover)",
+                type: "color",
+                key: "--input__background-color__hover",
+                value: "#090009"
+            },
+            {
+                name: "Background (Focus)",
+                type: "color",
+                key: "--input__background-color__focus",
+                value: "#090009"
+            },
+            {
+                name: "Border",
+                type: "color",
+                key: "--input__border-color",
+                value: "#660033"
+            },
+            {
+                name: "Border (Hover)",
+                type: "color",
+                key: "--input__border-color__hover",
+                value: "#FF3399"
+            },
+            {
+                name: "Border (Focus)",
+                type: "color",
+                key: "--input__border-color__focus",
+                value: "#FF3399"
+            }
+        ]
+    },
+    {
+        category: "Textarea",
+        values: [
+            {
+                name: "Background",
+                type: "color",
+                key: "--textarea__background-color",
+                value: "#000000",
+                alpha: 0.25
+            },
+            {
+                name: "Background (Focus)",
+                type: "color",
+                key: "--textarea__background-color__focus",
+                value: "#000000",
+                alpha: 0.45
+            }
+        ]
+    },
+    {
+        category: "Character",
+        values: [
+            {
+                name: "Background (Hover)",
+                type: "color",
+                key: "--character__background-color__hover",
+                value: "#330033"
+            },
+            {
+                name: "Border (Hover)",
+                type: "color",
+                key: "--character__border-color__hover",
+                value: "#8B008B"
+            }
+        ]
+    },
+    {
+        category: "Message",
+        values: [
+            {
+                name: "Background (You)",
+                type: "color",
+                key: "--message__background-color__you",
+                value: "#000000",
+                alpha: 0.5
+            },
+            {
+                name: "Background (Bot)",
+                type: "color",
+                key: "--message__background-color__bot",
+                value: "#000000",
+                alpha: 0
+            }
+        ]
+    },
+    {
+        category: "Message Topic",
+        values: [
+            {
+                name: "Text (You)",
+                type: "color",
+                key: "--message-topic__text-color__you",
+                value: "#DD99BB",
+                alpha: 0.8
+            },
+            {
+                name: "Background (You)",
+                type: "color",
+                key: "--message-topic__background-color__you",
+                value: "#666666",
+                alpha: 0.08
+            },
+            {
+                name: "Text (Bot)",
+                type: "color",
+                key: "--message-topic__text-color__bot",
+                value: "#F79ABB",
+                alpha: 0.85
+            },
+            {
+                name: "Background (Bot)",
+                type: "color",
+                key: "--message-topic__background-color__bot",
+                value: "#2A0D22",
+                alpha: 0.6
+            }
+        ]
+    },
+    {
+        category: "Message Original",
+        values: [
+            {
+                name: "Text",
+                type: "color",
+                key: "--message-original__text-color",
+                value: "#FF99FF",
+                alpha: 0.4
+            }
+        ]
+    },
+    {
+        category: "Overlay",
+        values: [
+            {
+                name: "Background",
+                type: "color",
+                key: "--overlay__background-color",
+                value: "#000000",
+                alpha: 0.6
+            }
+        ]
+    },
+    {
+        category: "Dialog",
+        values: [
+            {
+                name: "Background",
+                type: "color",
+                key: "--dialog__background-color",
+                value: "#12020d"
+            },
+            {
+                name: "Border",
+                type: "color",
+                key: "--dialog__border-color",
+                value: "#662244",
+                alpha: 0.6
+            },
+            {
+                name: "Border (Empty Image)",
+                type: "color",
+                key: "--dialog__border-color__empty-image",
+                value: "#FFFFFF",
+                alpha: 0.1325
+            }
+        ]
+    }
+]
 
 
 
@@ -148,13 +450,6 @@ Object.defineProperties(EventTarget.prototype,
             return this
         }
     },
-    clone:
-    {
-        value: function()
-        {
-            return this.cloneNode(true)
-        }
-    },
     setHtml:
     {
         value: function(value)
@@ -231,7 +526,10 @@ Object.defineProperties(EventTarget.prototype,
     {
         value: function(enabled)
         {
-            queryAll(`input, button, textarea, select`).forEach(x => x.disabled = !(enabled ?? true))
+            const disabled = !(enabled ?? true)
+            
+            queryAll(`input, button, textarea, select`).forEach(x => x.disabled = disabled)
+            queryAll(`.clickable`).forEach(x => x.toggleClass(`disabled`, disabled))
         }
     },
     disableInput:
@@ -293,8 +591,43 @@ Object.defineProperties(EventTarget.prototype,
     },
 })
 
+Object.defineProperties(String.prototype,
+{
+    fromJson:
+    {
+        value: function()
+        {
+            return JSON.parse(this)
+        }
+    },
+})
+
+Object.defineProperties(Array.prototype,
+{
+    findOrPush:
+    {
+        value: function(predicate, create)
+        {
+            let item = this.find(predicate)
+            if (!item)
+            {
+                item = create()
+                this.push(item)
+            }
+            return item
+        }
+    }
+})
+
 Object.defineProperties(Object.prototype,
 {
+    toJson:
+    {
+        value: function()
+        {
+            return JSON.stringify(this)
+        }
+    },
     route:
     {
         set: function(value)
@@ -447,7 +780,17 @@ Object.defineProperties(Object.prototype,
                 callback()
             }, ms)
         }
-    }
+    },
+    clone:
+    {
+        value: function()
+        {
+            if (this instanceof Node)
+                return this.cloneNode(true)
+            
+            return JSON.parse(JSON.stringify(this))
+        }
+    },
 })
 
 
@@ -474,6 +817,7 @@ class App
         for (const dialog of [
             new MessageDialog,
             new SettingsDialog,
+            new AppearanceDialog,
         ])
         {
             this.dialogs[dialog.name] = dialog
@@ -482,6 +826,11 @@ class App
     
     async mainAsync()
     {
+        if (!localStorage.getItem(`appearance`))
+            localStorage.setItem(`appearance`, `[]`)
+        this.cssRoot = localStorage.getItem(`appearance`).fromJson()
+        this.applyCssRoot()
+        
         this.updateStyle()
         
         queryAll(`[data-page], .loader`).forEach(x =>
@@ -741,36 +1090,91 @@ class App
         $body.removeClass(`loading`)
     }
     
-    updateStyle()
+    applyCssRoot()
     {
-        const hideImageId = `hide-images-style`
-        const $hideImage = document.getElementById(`hide-images-style`)
+        const set = (key, value) => document.documentElement.style.setProperty(key, value)
         
-        if (localStorage.getItem('hideImages') != "true")
+        for (const sectionDefault of cssRootDefault)
         {
-            if (!$hideImage)
-                return
+            const section = this.cssRoot.findOrPush(
+                x => x.category == sectionDefault.category,
+                () =>
+                {
+                    const x = sectionDefault.clone()
+                    return { category: x.category, values: [] }
+                }
+            )
             
-            $head.removeChild($hideImage)
-            return
+            for (const valueDefault of sectionDefault.values)
+            {
+                let value = section.values.findOrPush(
+                    x => x.key == valueDefault.key,
+                    () => valueDefault.clone()
+                )
+                
+                let _value = value.value
+                if (value.alpha !== undefined)
+                {
+                    let alpha = Math.round(value.alpha * 255).toString(16).toUpperCase()
+                    while (alpha.length < 2)
+                        alpha = `0${alpha}`
+                    _value += alpha
+                }
+                set(value.key, _value);
+            }
         }
         
-        if ($hideImage)
-            return
+        const body = this.cssRoot.find(x => x.category == `Body`)
+        const backgroundColor = body.values.find(x => x.key == `--body__background-color`)
         
-        const style = $head.create(`style`)
-        style.id = hideImageId;
-        style.innerHTML = `[style]:not(.no-background-image) {
-            background-size: unset !important;
-            background-image: url(res/checkers.svg) !important;
-        }`
+        set(`--bottombar__background-color__start`, `${backgroundColor.value}ff`)
+        set(`--bottombar__background-color__end`, `${backgroundColor.value}00`)
+        
+        localStorage.setItem(`appearance`, this.cssRoot.toJson())
+    }
+    
+    updateStyle()
+    {
+        const _updateStyle = (key, id, style) =>
+        {
+            const $image = document.getElementById(id)
+            
+            if (localStorage.getItem(key) != "true")
+            {
+                if (!$image)
+                    return
+                
+                $head.removeChild($image)
+                return
+            }
+            
+            if ($image)
+                return
+            
+            $head.create(`style`).setHtml(style).id = id
+        }
+        
+        _updateStyle(
+            `blurImages`,
+            `blur-images-style`,
+            `.nsfw-content { filter: blur(18px); }
+             .nsfw-content.small { filter: blur(14px); scale: .9; }
+             .nsfw-content.tiny { filter: blur(10px); scale: .7; }`
+        )
+        
+        _updateStyle(
+            `hideImages`,
+            `hide-images-style`,
+            `.nsfw-content {
+               background-size: unset !important;
+               background-image: url(res/checkers.svg) !important;
+             }`
+        )
     }
     
     async fetchCharactersAsync()
     {
         let error = false
-        
-        
         
         const characters = await fetchAsync(`/api/characters?cache=${this.useCache ?? location.hostname == `localhost`}`)
             .then(x => x.json())
@@ -1061,10 +1465,7 @@ class ChatPage extends Page
             
             $message.onClick(() =>
             {
-                if (App.instance.isLoading())
-                    return
-                
-                if (!this.$loader.hasClass(`display-none`))
+                if ($message.hasClass(`disabled`))
                     return
                 
                 App.instance.openDialog(`message`, {
@@ -1197,13 +1598,18 @@ class ImageGeneratorPage extends Page
         {
             this.firstImage ??= image
             
-            const $item = this.$historyContent.create(`div`)
+            const $item = this.$historyContent
+                .create(`div`)
+                .addClass(`clickable`)
+                .addClass(`nsfw-content`)
+                .addClass(`tiny`)
+            
             $item.dataset.id = image.id
             $item.setBackgroundImage(image.url)
             
             $item.onClick(() =>
             {
-                if (App.instance.isLoading())
+                if ($item.hasClass(`disabled`))
                     return
                 
                 this.loadImage(image)
@@ -1436,7 +1842,7 @@ class SettingsDialog extends Dialog
             return
         
         const json = await navigator.clipboard.readText()
-        const cookies = JSON.parse(json)
+        const cookies = json.fromJson()
         
         for (const cookie of cookies)
         {
@@ -1454,6 +1860,69 @@ class SettingsDialog extends Dialog
         this.cancel()
         
         App.instance.updateStyle()
+    }
+}
+
+class AppearanceDialog extends Dialog
+{
+    get name()
+    {
+        return `appearance`
+    }
+    
+    onOpen()
+    {
+        this.$content.clearHtml()
+        
+        for (const section of App.instance.cssRoot)
+        {
+            const $section = this.$content.create(`div`).addClass(`section`)
+            $section.create(`div`).addClass(`title`).setHtml(section.category)
+            
+            const $content = $section.create(`div`).addClass(`grid-content`)
+            
+            for (const value of section.values)
+            {
+                const $field = $content.create(`div`).addClass(`field`)
+                $field.create(`label`).setHtml(value.name)
+                
+                const $input = $field.create(`input`)
+                $input.type = value.type
+                $input.value = value.value
+                $input.on(`input`, () =>
+                {
+                    value.value = $input.value
+                    App.instance.applyCssRoot()
+                })
+                
+                const $range = $field.create(`input`)
+                $range.type = `range`
+                $range.min = 0
+                $range.max = 255
+                
+                if (value.alpha !== undefined)
+                {
+                    $range.value = Math.round(value.alpha * 255)
+                    $range.on(`input`, () =>
+                    {
+                        value.alpha = $range.value / 255.0
+                        App.instance.applyCssRoot()
+                    })
+                    continue
+                }
+                
+                $range.addClass(`hidden`)
+                $range.value = 0
+            }
+        }
+    }
+    
+    reset()
+    {
+        App.instance.cssRoot = []
+        App.instance.applyCssRoot()
+        
+        this.onOpen()
     }
 }
 

@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title>My CrushChat Client</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=20230912003">
-        <script src="js/script.js?v=20230912003" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=20230912005">
+        <script src="js/script.js?v=20230912005" defer></script>
     </head>
     
     <body class="display-none">
@@ -21,6 +21,7 @@
                 <button data-action="gotoPageAsync" data-target="characters">Characters</button>
                 <button data-action="gotoPageAsync" data-target="imageGenerator">Image Generator</button>
                 <button data-action="openDialog" data-target="settings">Settings</button>
+                <button data-action="openDialog" data-target="appearance">Appearance</button>
             </div>
             
             
@@ -32,7 +33,7 @@
                         <div class="title"></div>
                         <div class="content">
                             <div class="character">
-                                <div class="thumbnail"></div>
+                                <div class="thumbnail nsfw-content"></div>
                                 <div class="name"></div>
                                 <div class="description"></div>
                             </div>
@@ -46,6 +47,7 @@
                     <div class="menu">
                         <div data-action="gotoPageAsync" data-target="home">Home</div>
                         <div data-action="openDialog" data-target="settings">Settings</div>
+                        <div data-action="openDialog" data-target="appearance">Appearance</div>
                     </div>
                 </div>
             </div>
@@ -55,16 +57,16 @@
             
             <div data-page="chat">
                 <div class="persona">
-                    <div class="background"></div>
+                    <div class="background nsfw-content"></div>
                     <div class="content">
                         <div class="name"></div>
                         <div class="description"></div>
                     </div>
                 </div>
                 <div class="messages">
-                    <div class="message">
+                    <div class="message clickable">
                         <div class="avatar-wrapper">
-                            <div class="avatar"></div>
+                            <div class="avatar nsfw-content small"></div>
                         </div>
                         <div class="content">
                             <div class="name"></div>
@@ -72,7 +74,7 @@
                             <div class="original"></div>
                         </div>
                         <div class="image-wrapper">
-                            <div class="image"></div>
+                            <div class="image nsfw-content small"></div>
                         </div>
                     </div>
                 </div>
@@ -84,6 +86,7 @@
                     <div class="overlay"></div>
                     <div class="menu">
                         <div data-action="openDialog" data-target="settings">Settings</div>
+                        <div data-action="openDialog" data-target="appearance">Appearance</div>
                         <div data-action="pages.chat.refreshChatAsync">Refresh Chat</div>
                         <div data-action="pages.chat.clearChatAsync">Clear Chat</div>
                         <div data-action="gotoPageAsync" data-target="characters">Leave Chat</div>
@@ -102,7 +105,7 @@
                         <div class="fade"></div>
                         <div class="fade"></div>
                     </div>
-                    <div class="image"></div>
+                    <div class="image nsfw-content"></div>
                     <div class="field">
                         <input data-bind="isRealistic" type="checkbox">
                         <div>Realistic</div>
@@ -119,6 +122,7 @@
                     <div class="menu">
                         <div data-action="gotoPageAsync" data-target="home">Home</div>
                         <div data-action="openDialog" data-target="settings">Settings</div>
+                        <div data-action="openDialog" data-target="appearance">Appearance</div>
                     </div>
                 </div>
             </div>
@@ -132,13 +136,16 @@
         <div data-dialog="message">
             <div class="title">Message</div>
             <div class="content">
-                <div class="image">
-                    <div>
-                        <input data-bind="imagePrompt" placeholder="Custom image prompt (optional)">
-                    </div>
-                    <div>
-                        <button data-action="dialogs.message.generateImageAsync">Generate</button>
-                        <button data-action="dialogs.message.deleteImageAsync">Delete</button>
+                <div class="image-container">
+                    <div class="image nsfw-content"></div>
+                    <div class="image-content">
+                        <div>
+                            <input data-bind="imagePrompt" placeholder="Custom image prompt (optional)">
+                        </div>
+                        <div>
+                            <button data-action="dialogs.message.generateImageAsync">Generate</button>
+                            <button data-action="dialogs.message.deleteImageAsync">Delete</button>
+                        </div>
                     </div>
                 </div>
                 <textarea data-bind="content"></textarea>
@@ -165,7 +172,7 @@
                     <div class="field">
                         <label>CSRF Token</label>
                         <input data-bind="csrfToken" type="text">
-                    </div class="field">
+                    </div>
                     <div class="field">
                         <label>Session Token</label>
                         <input data-bind="sessionToken" type="text">
@@ -227,6 +234,10 @@
                         <div>Show Original Messages</div>
                     </div>
                     <div class="field">
+                        <input data-bind="blurImages" type="checkbox">
+                        <div>Blur Images</div>
+                    </div>
+                    <div class="field">
                         <input data-bind="hideImages" type="checkbox">
                         <div>Hide Images</div>
                     </div>
@@ -235,6 +246,19 @@
             <div class="bottom">
                 <button data-action="dialogs.settings.save">Save</button>
                 <button data-action="dialogs.settings.cancel">Cancel</button>
+            </div>
+        </div>
+        
+        
+        <!-- Appearance Dialog -->
+        
+        <div class="overlay" style="background-color: transparent !important; "></div>
+        <div data-dialog="appearance">
+            <div class="title">Appearance</div>
+            <div class="content"></div>
+            <div class="bottom">
+                <button data-action="dialogs.appearance.reset">Reset</button>
+                <button data-action="dialogs.appearance.cancel">Close</button>
             </div>
         </div>
         
