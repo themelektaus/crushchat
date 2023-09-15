@@ -6,6 +6,12 @@ namespace CrushChatApi;
 
 public static class ExtensionMethods
 {
+    public static async Task<string> GetBodyAsStringAsync(this HttpRequest @this)
+    {
+        using var stream = new StreamReader(@this.Body);
+        return await stream.ReadToEndAsync();
+    }
+
     public static string ToJson<T>(this T @this)
     {
         return JsonSerializer.Serialize(@this);
@@ -70,5 +76,4 @@ public static class ExtensionMethods
 
     public static bool HasQueryValue(this HttpContext @this, string key)
         => @this.Request.Query.ContainsKey(key);
-
 }

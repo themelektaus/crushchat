@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title>My CrushChat Client</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=20230912005">
-        <script src="js/script.js?v=20230912005" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.13-1216">
+        <script src="js/script.js?v=2023.09.13-1216" defer></script>
     </head>
     
     <body class="display-none">
@@ -17,11 +17,12 @@
             <!-- Home Page -->
             
             <div data-page="home">
+                <div class="icon"></div>
                 <h2>My CrushChat Client</h2>
-                <button data-action="gotoPageAsync" data-target="characters">Characters</button>
-                <button data-action="gotoPageAsync" data-target="imageGenerator">Image Generator</button>
-                <button data-action="openDialog" data-target="settings">Settings</button>
-                <button data-action="openDialog" data-target="appearance">Appearance</button>
+                <button class="ripple" data-action="gotoPageAsync" data-target="characters">Characters</button>
+                <button class="ripple" data-action="gotoPageAsync" data-target="imageGenerator">Image Generator</button>
+                <button class="ripple" data-action="openDialogAsync" data-target="settings">Settings</button>
+                <button class="ripple" data-action="openDialogAsync" data-target="appearance">Appearance</button>
             </div>
             
             
@@ -46,8 +47,9 @@
                     <div class="overlay"></div>
                     <div class="menu">
                         <div data-action="gotoPageAsync" data-target="home">Home</div>
-                        <div data-action="openDialog" data-target="settings">Settings</div>
-                        <div data-action="openDialog" data-target="appearance">Appearance</div>
+                        <div data-action="openDialogAsync" data-target="settings">Settings</div>
+                        <div data-action="openDialogAsync" data-target="appearance">Appearance</div>
+                        <div data-action="openDialogAsync" data-target="character">Create Character</div>
                     </div>
                 </div>
             </div>
@@ -81,15 +83,16 @@
                 <div class="loader"></div>
                 <div class="bottombar">
                     <input data-bind="message" class="flex-1" placeholder="Leave empty to get a reply">
-                    <button data-action="pages.chat.sendMessageAsync"></button>
+                    <button class="ripple" data-action="pages.chat.sendMessageAsync"></button>
                     <button data-action="pages.chat.openMenu" class="menu-button"></button>
                     <div class="overlay"></div>
                     <div class="menu">
-                        <div data-action="openDialog" data-target="settings">Settings</div>
-                        <div data-action="openDialog" data-target="appearance">Appearance</div>
+                        <div data-action="openDialogAsync" data-target="settings">Settings</div>
+                        <div data-action="openDialogAsync" data-target="appearance">Appearance</div>
                         <div data-action="pages.chat.refreshChatAsync">Refresh Chat</div>
                         <div data-action="pages.chat.clearChatAsync">Clear Chat</div>
                         <div data-action="gotoPageAsync" data-target="characters">Leave Chat</div>
+                        <div data-action="openDialogAsync" data-target="character">Edit Character</div>
                     </div>
                 </div>
             </div>
@@ -121,12 +124,63 @@
                     <div class="overlay"></div>
                     <div class="menu">
                         <div data-action="gotoPageAsync" data-target="home">Home</div>
-                        <div data-action="openDialog" data-target="settings">Settings</div>
-                        <div data-action="openDialog" data-target="appearance">Appearance</div>
+                        <div data-action="openDialogAsync" data-target="settings">Settings</div>
+                        <div data-action="openDialogAsync" data-target="appearance">Appearance</div>
                     </div>
                 </div>
             </div>
             <div class="loader"></div>
+        </div>
+        
+        
+        <!-- Character Dialog -->
+        
+        <div class="overlay"></div>
+        <div data-dialog="character">
+            <div class="title">Character</div>
+            <div class="content">
+                <div class="field">
+                    <label>Name</label>
+                    <input data-bind="name" type="text">
+                </div>
+                <div class="field">
+                    <label>Description</label>
+                    <textarea data-bind="description"></textarea>
+                </div>
+                <div class="field">
+                    <label>Image prompt(s)</label>
+                    <textarea data-bind="imagePrompt"></textarea>
+                </div>
+                <div class="field">
+                    <label>Persona</label>
+                    <textarea data-bind="persona" style="height: 15rem; "></textarea>
+                </div>
+                <div class="field">
+                    <label>Initial Messages</label>
+                    <ul data-bind="initialMessages">
+                        <li>
+                            <select data-property="role">
+                                <option value="You">You</option>
+                                <option value="Bot">Bot</option>
+                            </select>
+                            <input data-property="content" type="text">
+                        </li>
+                    </ul>
+                </div>
+                <div class="field">
+                    <label>Memories</label>
+                    <ul data-bind="memories">
+                        <li>
+                            <input data-property="content" type="text">
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="bottom">
+                <button class="ripple" data-action="dialogs.character.saveAsync">Save</button>
+                <button class="ripple" data-action="dialogs.character.deleteAsync">Delete</button>
+                <button class="ripple" data-action="dialogs.character.cancel">Cancel</button>
+            </div>
         </div>
         
         
@@ -140,23 +194,25 @@
                     <div class="image nsfw-content"></div>
                     <div class="image-content">
                         <div>
-                            <input data-bind="imagePrompt" placeholder="Custom image prompt (optional)">
+                            <textarea data-bind="imagePrompt"></textarea>
                         </div>
                         <div>
-                            <button data-action="dialogs.message.generateImageAsync">Generate</button>
-                            <button data-action="dialogs.message.deleteImageAsync">Delete</button>
+                            <button class="ripple" data-action="dialogs.message.generateImageAsync">Generate Image</button>
+                            <button class="ripple" data-action="dialogs.message.deleteImageAsync">Delete</button>
                         </div>
                     </div>
                 </div>
                 <textarea data-bind="content"></textarea>
-                <button data-action="dialogs.message.generateMessage">
-                    Regenerate Message
-                </button>
+                <div>
+                    <button data-action="dialogs.message.generateMessage" style="display: block; margin-inline: auto; ">
+                        Regenerate Message
+                    </button>
+                </div>
             </div>
             <div class="bottom">
-                <button data-action="dialogs.message.saveAsync">Save</button>
-                <button data-action="dialogs.message.deleteAsync">Delete</button>
-                <button data-action="dialogs.message.cancel">Cancel</button>
+                <button class="ripple" data-action="dialogs.message.saveAsync">Save</button>
+                <button class="ripple" data-action="dialogs.message.deleteAsync">Delete</button>
+                <button class="ripple" data-action="dialogs.message.cancel">Cancel</button>
             </div>
         </div>
         
@@ -179,28 +235,13 @@
                     </div>
                     <div class="field">
                         <label></label>
-                        <button data-action="dialogs.settings.parseTokensFromClipboardAsync">
+                        <button class="ripple" data-action="dialogs.settings.parseTokensFromClipboardAsync">
                             Parse from Clipboard
                         </button>
                     </div>
-                    <div class="field display-none important">
-                        <label>Character Limit</label>
-                        <input data-bind="characterLimit" type="text">
-                    </div>
-                    <div class="field display-none important">
-                        <label>Message Limit</label>
-                        <input data-bind="messageLimit" type="text">
-                    </div>
-                </div>
-                <div class="section display-none">
-                    <div class="title">DeepL</div>
-                    <div class="field">
-                        <label>Block Size</label>
-                        <input data-bind="deeplBlockSize" type="text">
-                    </div>
                 </div>
                 <div class="section">
-                    <div class="title">User Settings</div>
+                    <div class="title">Translation</div>
                     <div class="field">
                         <label>Language</label>
                         <select data-bind="language">
@@ -226,13 +267,19 @@
                         <input data-bind="libreTranslateUrl" type="text">
                     </div>
                     <div class="field">
-                        <input data-bind="autoGenerate" type="checkbox">
-                        <div>Get Auto Reply</div>
-                    </div>
-                    <div class="field">
                         <input data-bind="showOriginalMessages" type="checkbox">
                         <div>Show Original Messages</div>
                     </div>
+                </div>
+                <div class="section">
+                    <div class="title">Behaviour</div>
+                    <div class="field">
+                        <input data-bind="autoGenerate" type="checkbox">
+                        <div>Automatically receive a message after answering</div>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="title">Safety </div>
                     <div class="field">
                         <input data-bind="blurImages" type="checkbox">
                         <div>Blur Images</div>
@@ -244,8 +291,8 @@
                 </div>
             </div>
             <div class="bottom">
-                <button data-action="dialogs.settings.save">Save</button>
-                <button data-action="dialogs.settings.cancel">Cancel</button>
+                <button class="ripple" data-action="dialogs.settings.save">Save</button>
+                <button class="ripple" data-action="dialogs.settings.cancel">Cancel</button>
             </div>
         </div>
         
@@ -257,8 +304,8 @@
             <div class="title">Appearance</div>
             <div class="content"></div>
             <div class="bottom">
-                <button data-action="dialogs.appearance.reset">Reset</button>
-                <button data-action="dialogs.appearance.cancel">Close</button>
+                <button class="ripple" data-action="dialogs.appearance.resetAsync">Reset</button>
+                <button class="ripple" data-action="dialogs.appearance.cancel">Close</button>
             </div>
         </div>
         

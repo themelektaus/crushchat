@@ -15,9 +15,7 @@
         translationClient: "",
         deeplAuthKey: "",
         deeplBlockSize: 10,
-        libreTranslateUrl: "",
-        characterLimit: 100,
-        messageLimit: 800
+        libreTranslateUrl: ""
     }
     
     for (const key in items)
@@ -95,7 +93,7 @@ let cssRootDefault =
                 name: "Background (Active)",
                 type: "color",
                 key: "--button__background-color__active",
-                value: "#550044"
+                value: "#7F154D"
             },
             {
                 name: "Border",
@@ -358,6 +356,13 @@ Object.defineProperties(EventTarget.prototype,
             return query(`#main > .loader`)
         }
     },
+    isMobile:
+    {
+        value: () =>
+        {
+            return navigator.userAgentData.mobile
+        }
+    },
     fetchAsync:
     {
         value: function(url, options)
@@ -372,10 +377,7 @@ Object.defineProperties(EventTarget.prototype,
             h['X-Session-Token'] = localStorage.getItem('sessionToken')
             h['X-Translation-Client'] = localStorage.getItem('translationClient')
             h['X-DeepL-Auth-Key'] = localStorage.getItem('deeplAuthKey')
-            h['X-DeepL-Block-Size'] = localStorage.getItem('deeplBlockSize')
             h['X-LibreTranslate-URL'] = localStorage.getItem('libreTranslateUrl')
-            h['X-Character-Limit'] = localStorage.getItem('characterLimit')
-            h['X-Message-Limit'] = localStorage.getItem('messageLimit')
             h['X-Language'] = localStorage.getItem('language')
             
             return window.fetch(url, options)
@@ -529,7 +531,7 @@ Object.defineProperties(EventTarget.prototype,
             const disabled = !(enabled ?? true)
             
             queryAll(`input, button, textarea, select`).forEach(x => x.disabled = disabled)
-            queryAll(`.clickable`).forEach(x => x.toggleClass(`disabled`, disabled))
+            queryAll(`.overlay, .clickable`).forEach(x => x.toggleClass(`disabled`, disabled))
         }
     },
     disableInput:
@@ -680,6 +682,74 @@ Object.defineProperties(Object.prototype,
             {
                 this.queryAll(`[data-bind]`).forEach($ =>
                 {
+                    if ($.tagName == 'UL')
+                    {   
+                        target[$.dataset.bind] = []
+                        
+                        $.queryAll(`li`).forEach($li =>
+                        {
+                            if ($li == $.firstElementChild  || $li == $.lastElementChild )
+                                return
+                            
+                            const value = { }
+                            $li.transferToInternal(value, `property`)
+                            target[$.dataset.bind].push(value)
+                        })
+                    }
+                    else
+                    {
+                        this.transferToInternal(target, `bind`)
+                    }
+                })
+            }
+            else
+            {
+                target.queryAll(`[data-bind]`).forEach($ =>
+                {
+                    if ($.tagName == 'UL')
+                    {
+                        const $template = $.query(`li`).addClass(`display-none`).addClass(`important`)
+                        
+                        $.queryAll(`li`).forEach($li =>
+                        {
+                            if ($li == $template)
+                                return
+                            
+                            $.removeChild($li)
+                        })
+                        
+                        for (const value of this[$.dataset.bind])
+                        {
+                            const $li = $template.clone().removeClass(`display-none`).removeClass(`important`)
+                            $.appendChild($li)
+                            value.transferToInternal($li, `property`)
+                            $li.create(`button`).addClass(`remove`).onClick(() => $.removeChild($li))
+                        }
+                        
+                        $.create(`li`).create(`button`).setHtml(`Add Item`).onClick(() =>
+                        {
+                            const $li = $template.clone().removeClass(`display-none`).removeClass(`important`)
+                            $.insertBefore($li, $.lastChild)
+                            $li.create(`button`).addClass(`remove`).onClick(() => $.removeChild($li))
+                        })
+                    }
+                    else
+                    {
+                        this.transferToInternal(target, `bind`)
+                    }
+                })
+            }
+            return this
+        }
+    },
+    transferToInternal:
+    {
+        value: function(target, key)
+        {
+            if (this instanceof EventTarget)
+            {
+                this.queryAll(`[data-${key}]`).forEach($ =>
+                {
                     if (target instanceof Storage)
                     {
                         let value
@@ -693,18 +763,18 @@ Object.defineProperties(Object.prototype,
                                 value = $.value.toString()
                                 break
                         }
-                        localStorage.setItem($.dataset.bind, value)
+                        localStorage.setItem($.dataset[key], value)
                     }
                     else
                     {
                         switch ($.type)
                         {
                             case 'checkbox':
-                                target[$.dataset.bind] = $.checked
+                                target[$.dataset[key]] = $.checked
                                 break
                                 
                             default:
-                                target[$.dataset.bind] = $.value
+                                target[$.dataset[key]] = $.value
                                 break
                         }
                     }
@@ -712,18 +782,18 @@ Object.defineProperties(Object.prototype,
             }
             else
             {
-                target.queryAll(`[data-bind]`).forEach($ =>
+                target.queryAll(`[data-${key}]`).forEach($ =>
                 {
                     if (this instanceof Storage)
                     {
                         switch ($.type)
                         {
                             case 'checkbox':
-                                $.checked = this.getItem($.dataset.bind) == "true"
+                                $.checked = this.getItem($.dataset[key]) == "true"
                                 break
                             
                             default:
-                                $.value = this.getItem($.dataset.bind)
+                                $.value = this.getItem($.dataset[key])
                                 break
                         }
                     }
@@ -732,11 +802,11 @@ Object.defineProperties(Object.prototype,
                         switch ($.type)
                         {
                             case 'checkbox':
-                                $.checked = this[$.dataset.bind]
+                                $.checked = this[$.dataset[key]]
                                 break
-                                
+                            
                             default:
-                                $.value = this[$.dataset.bind]
+                                $.value = this[$.dataset[key]]
                                 break
                         }
                     }
@@ -815,6 +885,7 @@ class App
         }
         
         for (const dialog of [
+            new CharacterDialog,
             new MessageDialog,
             new SettingsDialog,
             new AppearanceDialog,
@@ -832,6 +903,41 @@ class App
         this.applyCssRoot()
         
         this.updateStyle()
+        
+        queryAll(`.ripple`).forEach($ =>
+        {
+            const lastChild = $.lastChild
+            if (lastChild instanceof Text)
+            {
+                const $div = $.create(`div`)
+                $.insertBefore($div, $.firstChild)
+                
+                const text = lastChild.textContent
+                $.removeChild(lastChild)
+                
+                const $span = $.create(`span`)
+                $span.style.position = `relative`
+                $span.style.pointerEvents = `none`
+                $span.innerText = text.trim()
+                $.appendChild($span)
+            }
+        })
+        
+        on(`mousedown`, ($, e) =>    
+        {
+            if (!$.hasClass(`ripple`))
+                return
+            
+            const $ripple = create(`div`).addClass(`ripple`)
+            $ripple.style.left = `${e.offsetX}px`
+            $ripple.style.top = `${e.offsetY}px`
+            $.insertBefore($ripple, $.firstChild)
+            
+            $ripple.offsetHeight
+            $ripple.addClass(`execute`)
+            
+            setTimeout(() => $.removeChild($ripple), 500)
+        })
         
         queryAll(`[data-page], .loader`).forEach(x =>
         {
@@ -874,10 +980,13 @@ class App
         })
         
         this.closeAllMenus($overlay =>
-        {
+        {    
             $overlay.onClick($sender =>
             {
                 if ($sender != $overlay)
+                    return
+                
+                if ($sender.hasClass(`disabled`))
                     return
                 
                 this.closeAllMenus()
@@ -889,6 +998,9 @@ class App
             $overlay.onClick($sender =>
             {
                 if ($sender != $overlay)
+                    return
+                
+                if ($sender.hasClass(`disabled`))
                     return
                 
                 this.closeAllDialogs()
@@ -985,8 +1097,10 @@ class App
         })
     }
     
-    openDialog(sender, userData)
+    async openDialogAsync(sender, userData)
     {
+        disableInput()
+        
         this.closeAllDialogs()
         
         const dialog = typeof sender == `string`
@@ -1000,8 +1114,10 @@ class App
         if ($prev.hasClass(`overlay`))
             $prev.removeClass(`hidden`)
         
-        if (this.dialogs[dialog].onOpen)
-            this.dialogs[dialog].onOpen(userData)
+        if (this.dialogs[dialog].onOpenAsync)
+            await this.dialogs[dialog].onOpenAsync(userData)
+        
+        enableInput()
     }
     
     async gotoPageAsync(sender, id)
@@ -1176,7 +1292,10 @@ class App
     {
         let error = false
         
-        const characters = await fetchAsync(`/api/characters?cache=${this.useCache ?? location.hostname == `localhost`}`)
+        //const cache = this.useCache ?? location.hostname == `localhost`
+        const cache = this.useCache
+        
+        const characters = await fetchAsync(`/api/characters?cache=${cache}`)
             .then(x => x.json())
             .catch(() => error = true)
         
@@ -1298,7 +1417,8 @@ class CharactersPage extends Page
     {
         enableInput()
         
-        this.$search.focus()
+        if (!isMobile())
+            this.$search.focus()
     }
     
     #addCharacter(characters, key, title)
@@ -1379,6 +1499,8 @@ class ChatPage extends Page
     async onUnloadAsync()
     {
         this.$message.clearEventListeners()
+        
+        delete this.character
     }
     
     async onLoadAsync()
@@ -1399,19 +1521,26 @@ class ChatPage extends Page
         
         enableInput()
         
-        this.$message.focus()
+        if (!isMobile())
+            this.$message.focus()
     }
     
-    async refreshChatAsync()
+    async refreshChatAsync($sender, options)
     {
         disableInput()
         this.$messages.clearHtml()
         
-        await this.refreshAsync({ scrollDown: true, cache: false, translate: true })
+        options ??= { }
+        options.scrollDown ??= true
+        options.cache ??= false
+        options.translate ??= true
+        
+        await this.refreshAsync(options)
         
         enableInput()
         
-        this.$message.focus()
+        if (!isMobile())
+            this.$message.focus()
     }
     
     async refreshAsync(options)
@@ -1431,7 +1560,7 @@ class ChatPage extends Page
         
         this.$persona.query(`.background`).setBackgroundImage(this.character.thumbnail)
         this.$persona.query(`.name`).setHtml(this.character.name)
-        this.$persona.query(`.description`).setHtml(this.character.personaTranslated || this.character.persona)
+        this.$persona.query(`.description`).setHtml(this.character.personaFilteredTranslated || this.character.personaFiltered)
         
         if (scrollDown)
             this.scrollDown()
@@ -1463,12 +1592,12 @@ class ChatPage extends Page
             $message.query(`.original`).setHtml(message.content).removeIf(!showOriginalMessage || !message.contentTranslated)
             $message.query(`.image`).setBackgroundImage(image).parentNode.removeIf(!image)
             
-            $message.onClick(() =>
+            $message.onClick(async () =>
             {
                 if ($message.hasClass(`disabled`))
                     return
                 
-                App.instance.openDialog(`message`, {
+                await App.instance.openDialogAsync(`message`, {
                     character: this.character,
                     message: message
                 })
@@ -1492,7 +1621,8 @@ class ChatPage extends Page
         await this.refreshAsync({ scrollDown: true, cache: false, translate: true })
         enableInput()
         
-        this.$message.focus()
+        if (!isMobile())
+            this.$message.focus()
     }
     
     scrollDown()
@@ -1705,6 +1835,112 @@ class Dialog extends AppNode
     }
 }
 
+class CharacterDialog extends Dialog
+{
+    get name()
+    {
+        return `character`
+    }
+    
+    constructor()
+    {
+        super()
+        
+        this.data = { }
+    }
+    
+    get #chat()
+    {
+        return App.instance.pages.chat
+    }
+    
+    async onOpenAsync()
+    {
+        this.data.name = ``
+        this.data.description = ``
+        this.data.imagePrompt = ``
+        this.data.initialMessages = []
+        this.data.persona = ``
+        this.data.thumbnail = ``
+        this.data.memories = []
+        
+        this.data.transferTo(this.$content)
+        
+        if (!this.#chat.character)
+        {
+            this.$.query(`.title`).setHtml(`Create Character`)
+            this.$.query(`.field:has([data-bind="memories"])`).addClass(`display-none`).addClass(`important`)
+            return
+        }
+        
+        this.$.query(`.title`).setHtml(`Edit Character`)
+        this.$.query(`.field:has([data-bind="memories"])`).removeClass(`display-none`).removeClass(`important`)
+        
+        const url = `/api/characters/${this.#chat.character.id}`
+        const character = await fetchAsync(url).then(x => x.json())
+        
+        this.data.name = character.name
+        this.data.description = character.description
+        this.data.imagePrompt = character.imagePrompt
+        this.data.initialMessages = character.initialMessages.fromJson()
+        this.data.persona = character.personaFiltered
+        this.data.thumbnail = character.thumbnail
+        this.data.memories = character.memories
+        
+        this.data.transferTo(this.$content)
+    }
+    
+    async saveAsync()
+    {
+        App.instance.startLoading()
+        
+        this.$content.transferTo(this.data)
+        
+        const url = `/api/characters/${this.#chat.character ? `update` : `create`}`
+        
+        const body = {
+            name: this.data.name,
+            description: this.data.description,
+            persona: this.data.persona,
+            imagePrompt: this.data.imagePrompt,
+            initialMessages: this.data.initialMessages.toJson(),
+            thumbnail: this.data.thumbnail,
+            tags: [`Female`],
+            isPrivate: true,
+            memories: this.data.memories
+        }
+        
+        if (this.#chat.character)
+        {
+            body.id = this.#chat.character.id
+        }
+        
+        await fetchAsync(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body.toJson()
+        })
+        
+        if (body.id)
+            this.#chat.character = await fetchAsync(`/api/characters/${body.id}`).then(x => x.json())
+        
+        App.instance.stopLoading()
+        this.cancel()
+        
+        if (body.id)
+            await this.#chat.refreshChatAsync()
+    }
+    
+    async deleteAsync()
+    {
+        App.instance.startLoading()
+        await fetchAsync(`/api/characters/${this.character.id}/delete`)
+        App.instance.stopLoading()
+        
+        this.cancel()
+    }
+}
+
 class MessageDialog extends Dialog
 {
     get name()
@@ -1712,7 +1948,7 @@ class MessageDialog extends Dialog
         return `message`
     }
     
-    onOpen(userData)
+    onOpenAsync(userData)
     {
         this.characterId = userData.character.id
         this.messageId = userData.message.id
@@ -1722,10 +1958,13 @@ class MessageDialog extends Dialog
         
         this.transferTo(this.$content)
         
+        this.$.query(`[data-bind="imagePrompt"]`).placeholder = userData.character.imagePrompt
+        
         const $image = this.$content.query(`.image`)
         
         $image.toggleClass(`empty`, !userData.message.image)
         $image.setBackgroundImage(userData.message.image ? userData.message.image : ``)
+        this.$.query(`[data-action="dialogs.message.deleteImageAsync"]`).toggleClass(`display-none`, !userData.message.image)
     }
     
     async applyAsync(task)
@@ -1805,7 +2044,7 @@ class SettingsDialog extends Dialog
         this.$translationClient.on(`change`, () => this.updateLayout())
     }
     
-    onOpen()
+    onOpenAsync()
     {
         localStorage.transferTo(this.$content)
         
@@ -1870,7 +2109,7 @@ class AppearanceDialog extends Dialog
         return `appearance`
     }
     
-    onOpen()
+    onOpenAsync()
     {
         this.$content.clearHtml()
         
@@ -1917,12 +2156,12 @@ class AppearanceDialog extends Dialog
         }
     }
     
-    reset()
+    async resetAsync()
     {
         App.instance.cssRoot = []
         App.instance.applyCssRoot()
         
-        this.onOpen()
+        await this.onOpenAsync()
     }
 }
 

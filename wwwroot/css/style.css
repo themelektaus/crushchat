@@ -40,6 +40,33 @@ body.loading::-webkit-scrollbar-thumb:hover {
     cursor: default;
 }
 
+.ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple > .ripple {
+    position: absolute;
+    background-color: #fff2;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    pointer-events: none;
+    transform-origin: center center;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    transition: all 500ms ease-out;
+}
+
+.ripple > .ripple.execute {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(8)
+}
+
+button > .ripple {
+    background-color: var(--button__background-color__active);
+}
+
 body, button, input, textarea, select {
     font-family: custom;
     outline: none;
@@ -71,8 +98,20 @@ button:not(:disabled):hover {
 
 button:not(:disabled):active {
     color: var(--button__text-color__active);
-    background-color: var(--button__background-color__active);
     outline-color: var(--button__border-color__active);
+}
+
+button:not(:disabled):not(.ripple):active {
+    background-color: var(--button__background-color__active);
+}
+
+button.remove {
+    background-image: url(../res/remove.svg);
+    background-size: 70%;
+    height: 2.25rem;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-top: 0.35rem;
 }
 
 input, select, button {
@@ -102,6 +141,7 @@ input:focus, textarea:focus, select:focus {
 textarea {
     height: 4em;
     padding: .5rem;
+    resize: none;
 }
 
 textarea, textarea:hover, textarea:focus {
@@ -176,7 +216,7 @@ input[type="checkbox"] {
         var(--bottombar__background-color__end) 100%
     ) !important;
     
-    padding: 3rem 1rem 1rem;
+    padding: 3rem 1.25rem 1.25rem;
     box-sizing: border-box;
     display: flex;
     gap: .5rem;
@@ -222,21 +262,35 @@ input[type="checkbox"] {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
     position: absolute;
     transform: translate(-50%, -50%);
     top: 50%;
     left: 50%;
-    padding: 0;
+    padding: 0 0 1rem;
 }
 
-[data-page="home"] h2 {
+[data-page="home"] > .icon {
+    width: 10rem;
+    max-width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: var(--button__background-color__active);
+    background-image: url(../favicon.ico);
+    background-size: calc(100% - .5rem);
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+[data-page="home"] > h2 {
+    margin: 0 0 2rem;
     white-space: nowrap;
 }
 
 [data-page="home"] > button {
     font-size: 1.2em;
     width: 13em;
+    padding: .5rem;
 }
 
 [data-page="characters"] .characters {
@@ -561,6 +615,12 @@ input[type="checkbox"] {
     overflow: hidden scroll;
 }
 
+[data-dialog] > .content > .section {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
 [data-dialog] > .content > .section > .title {
     font-weight: bold;
     margin-bottom: .5rem;
@@ -597,7 +657,7 @@ input[type="checkbox"] {
     bottom: .5rem;
     display: flex;
     flex-direction: column;
-    gap: .5rem;
+    gap: 1rem;
     justify-content: flex-end;
     align-items: center;
     padding: 1rem;
@@ -615,37 +675,28 @@ input[type="checkbox"] {
     opacity: 1;
 }
 
-[data-dialog="message"] > .content > .image-container > .image-content > div > input {
-    line-height: 2.5;
+[data-dialog="message"] > .content > .image-container > .image-content > div > textarea {
     width: 100%;
+    background-color: var(--input__background-color);
+}
+
+[data-dialog="settings"] > .content > .section > .title {
+    margin: .5rem 0 0;
 }
 
 .flex-1 {
     flex: 1;
 }
 
-.display-none {
-    display: none;
-}
-
-.display-none.important {
-    display: none !important;
-}
-
-.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
 .field {
-    height: 3rem;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .field > label {
     display: block;
     width: 10rem;
+    margin-top: .6rem;
 }
 
 .field > label + * {
@@ -653,9 +704,37 @@ input[type="checkbox"] {
 }
 
 .field > input,
+.field > textarea,
 .field > select {
     display: block;
     padding-block: .5rem;
+}
+
+.field > ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.field > ul > li {
+    margin-block-end: .5rem;
+    display: flex;
+    gap: .5rem;
+    justify-content: center;
+}
+
+.field > ul > li > input {
+    padding-block: .5rem;
+    display: block;
+    flex: 1;
+}
+
+.field > ul > li > input + button {
+    
+}
+
+.field > ul > li > button {
+    
 }
 
 input[type="color"] {
@@ -766,6 +845,19 @@ input[type="range"]:hover::-webkit-slider-thumb {
     width: 100%;
 }
 
+.display-none {
+    display: none;
+}
+
+.display-none.important {
+    display: none !important;
+}
+
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
 @media screen and (max-width: 1800px) {
     [data-dialog] > .content > .section > .grid-content {
         grid-template-columns: repeat(2, 1fr);
@@ -776,8 +868,14 @@ input[type="range"]:hover::-webkit-slider-thumb {
     html {
         scroll-behavior: unset;
     }
+    button:not(:disabled):active {
+        background-color: var(--button__background-color__active);
+    }
     #main {
         padding-top: 0;
+    }
+    .bottombar {
+        padding: 3rem 1rem 1rem;
     }
     [data-page="characters"] .characters {
         padding-left: 1rem;

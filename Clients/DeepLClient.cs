@@ -48,7 +48,7 @@ public class DeepLClient : ITranslationClient
 
         while (pending.Count > 0)
         {
-            var block = pending.Take(int.Parse(request.Headers["X-DeepL-Block-Size"])).ToList();
+            var block = pending.Take(10).ToList();
 
             using var message = CreateMessage(
                 request.Headers["X-DeepL-Auth-Key"],

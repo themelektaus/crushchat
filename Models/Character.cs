@@ -2,6 +2,44 @@
 
 public class Character
 {
+    public abstract class Creation
+    {
+        public class New : Creation
+        {
+            
+        }
+
+        public class Edit : Creation
+        {
+            public class WithMemories : Edit
+            {
+                public Memory[] memories { get; set; }
+
+                public void WriteMemories()
+                {
+                    if (memories is null)
+                        return;
+
+                    var folder = Directory.CreateDirectory(Path.Combine("Data", "Memories"));
+                    var path = Path.Combine(folder.FullName, $"{id}.json");
+                    File.WriteAllText(path, memories.ToJson());
+                    memories = null;
+                }
+            }
+
+            public string id { get; set; }
+        }
+
+        public string name { get; set; }
+        public string description { get; set; }
+        public string persona { get; set; }
+        public string imagePrompt { get; set; }
+        public string initialMessages { get; set; }
+        public string thumbnail { get; set; }
+        public string[] tags { get; set; }
+        public bool isPrivate { get; set; }
+    }
+
     public string id { get; set; }
     public string userId { get; set; }
     public string name { get; set; }
@@ -10,17 +48,43 @@ public class Character
     public string imagePrompt { get; set; }
     public string thumbnail { get; set; }
     public string persona { get; set; }
-    public string personaTranslated { get; set; }
+    public string personaFiltered { get; set; }
+    public string personaFilteredTranslated { get; set; }
+    public string initialMessages { get; set; }
     public int upvotes { get; set; }
 
     public bool isPrivate { get; set; }
     public bool recent { get; set; }
     public bool hot { get; set; }
 
+    public class Memory
+    {
+        public string role { get; set; }
+        public string content { get; set; }
+    }
+    public List<Memory> memories { get; set; }
+
+    public Character Prepare()
+    {
+        initialMessages ??= "[]";
+
+        var index = persona.IndexOf("'s Persona:");
+        personaFiltered = persona[(index + 11)..].Trim();
+
+        var folder = Directory.CreateDirectory(Path.Combine("Data", "Memories"));
+        var file = new FileInfo(Path.Combine(folder.FullName, $"{id}.json"));
+
+        memories = file.Exists
+            ? File.ReadAllText(file.FullName).FromJson<List<Memory>>()
+            : new();
+
+        return this;
+    }
+
     public void TranslateTo(string language)
     {
         descriptionTranslated = description.TranslateTo(language);
-        personaTranslated = persona.TranslateTo(language);
+        personaFilteredTranslated = personaFiltered.TranslateTo(language);
 
         if (messages is null)
             return;

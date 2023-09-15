@@ -1,5 +1,7 @@
 using CrushChatApi;
 
+using Microsoft.AspNetCore.Mvc;
+
 var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
@@ -33,6 +35,18 @@ app.MapGet("/api/characters", async (HttpRequest request) =>
 
 
 
+#region GET /api/characters/{characterId}
+
+app.MapGet("/api/characters/{characterId}", (HttpRequest request, string characterId) =>
+{
+    using var client = new CrushChatClient(request);
+    return client.GetCharacter(characterId);
+});
+
+#endregion
+
+
+
 #region GET /api/characters/{characterId}/messages
 
 app.MapGet("/api/characters/{characterId}/messages", async (HttpRequest request, string characterId) =>
@@ -54,9 +68,7 @@ app.MapGet("/api/characters/{characterId}/messages", async (HttpRequest request,
 
 app.MapPost("/api/characters/{characterId}/messages", async (HttpRequest request, string characterId) =>
 {
-    string body = null;
-    using (var stream = new StreamReader(request.Body))
-        body = await stream.ReadToEndAsync();
+    var body = await request.GetBodyAsStringAsync();
 
     if (request.NeedsTranslation(out var language))
     {
@@ -99,9 +111,7 @@ app.MapPost("/api/characters/{characterId}/messages", async (HttpRequest request
 
 app.MapPost("/api/characters/{characterId}/messages/{index}", async (HttpRequest request, string characterId, int index) =>
 {
-    string body = null;
-    using (var stream = new StreamReader(request.Body))
-        body = await stream.ReadToEndAsync();
+    var body = await request.GetBodyAsStringAsync();
 
     if (request.NeedsTranslation(out var language))
     {
@@ -154,6 +164,8 @@ app.MapGet("/api/characters/{characterId}/messages/generate", async (HttpRequest
         return default;
 
     var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
+    
+    client.AddMemories(messages, character.id);
 
     var messageRequest = new MessageRequest
     {
@@ -162,7 +174,7 @@ app.MapGet("/api/characters/{characterId}/messages/generate", async (HttpRequest
         messages = messages
     };
 
-    var response = await client.GenerateResponseAsync(characterId, messageRequest);
+    var response = await client.GenerateResponseAsync(messageRequest);
 
     MessageRequest.Status status;
 
@@ -175,11 +187,14 @@ app.MapGet("/api/characters/{characterId}/messages/generate", async (HttpRequest
         await Task.Delay(3000);
     }
 
-    var index = messages.LastOrDefault()?.index ?? -1;
+    var index = messages.Count == 0 ? 0 : messages.Max(x => x.index);
     var result = await client.PutMessageAsync("Bot", characterId, index + 1, status.reply);
 
     if (result.message != "Message saved successfully.")
+    {
+        Console.WriteLine(result.message);
         return default;
+    }
 
     if (request.NeedsTranslation(out var language))
     {
@@ -188,7 +203,9 @@ app.MapGet("/api/characters/{characterId}/messages/generate", async (HttpRequest
             await translationClient.TranslateAsync("EN", language, status.reply);
     }
 
-    return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+    await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+
+    return messageRequest;
 });
 
 #endregion
@@ -209,6 +226,8 @@ app.MapGet("/api/characters/{characterId}/messages/generate/{index}", async (Htt
 
     var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
 
+    client.AddMemories(messages, character.id);
+
     var messageRequest = new MessageRequest
     {
         botName = character.name,
@@ -216,7 +235,7 @@ app.MapGet("/api/characters/{characterId}/messages/generate/{index}", async (Htt
         messages = messages.Where(x => x.index < index).ToList()
     };
 
-    var response = await client.GenerateResponseAsync(characterId, messageRequest);
+    var response = await client.GenerateResponseAsync(messageRequest);
 
     MessageRequest.Status status;
 
@@ -241,7 +260,9 @@ app.MapGet("/api/characters/{characterId}/messages/generate/{index}", async (Htt
             await translationClient.TranslateAsync("EN", language, status.reply);
     }
 
-    return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+    await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+
+    return messageRequest;
 });
 
 #endregion
@@ -253,9 +274,17 @@ app.MapGet("/api/characters/{characterId}/messages/generate/{index}", async (Htt
 app.MapGet("/api/characters/{characterId}/messages/delete/{index}", async (HttpRequest request, string characterId, int index) =>
 {
     using var client = new CrushChatClient(request);
-    await client.DeleteAsync($"/api/messages?characterId={characterId}&index={index}");
 
-    File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
+    using var message = client.CreateMessage(
+        HttpMethod.Delete,
+        $"/api/messages?characterId={characterId}&index={index}"
+    );
+
+    var (success, response) = await client.SendAsync(message);
+    if (success)
+        File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
+
+    return response;
 });
 
 #endregion
@@ -267,9 +296,17 @@ app.MapGet("/api/characters/{characterId}/messages/delete/{index}", async (HttpR
 app.MapGet("/api/characters/{characterId}/messages/clear", async (HttpRequest request, string characterId) =>
 {
     using var client = new CrushChatClient(request);
-    await client.DeleteAsync($"/api/messages?characterId={characterId}");
 
-    File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
+    using var message = client.CreateMessage(
+        HttpMethod.Delete,
+        $"/api/messages?characterId={characterId}"
+    );
+
+    var (success, response) = await client.SendAsync(message);
+    if (success)
+        File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
+
+    return response;
 });
 
 #endregion
@@ -331,12 +368,20 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
 
 
 
-#region GET /api/characters/{characterId}/messages/generate-image/{index}
+#region GET /api/characters/{characterId}/generate-image
 
-app.MapGet("/api/characters/{characterId}/generate-image/", async (HttpRequest request, string characterId) =>
+app.MapGet("/api/characters/{characterId}/generate-image", async (HttpRequest request, string characterId) =>
 {
     using var client = new CrushChatClient(request);
-    return await client.GenerateCharacterImageAsync(characterId);
+
+    using var message = client.CreateMessage(
+        HttpMethod.Put,
+        $"/api/characters/{characterId}/regenerate-image"
+    );
+
+    var (_, response) = await client.SendAsync(message);
+
+    return response;
 });
 
 #endregion
@@ -402,11 +447,12 @@ app.MapGet("/api/images/{id}", async (HttpRequest request, string id) =>
 
         if (File.Exists($"{basePath}.png"))
             File.Delete($"{basePath}.png");
-        
+
         return Results.Ok();
     }
 
     var content = await File.ReadAllBytesAsync($"{basePath}.png");
+
     return Results.File(content, contentType: "image/png");
 });
 
@@ -421,6 +467,7 @@ app.MapGet("/api/characters/{characterId}/messages/delete-image/{index}", async 
     using var client = new CrushChatClient(request);
 
     var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
+
     var message = messages.FirstOrDefault(x => x.index == index);
     message.image = null;
 
@@ -430,6 +477,87 @@ app.MapGet("/api/characters/{characterId}/messages/delete-image/{index}", async 
         return default;
 
     return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+});
+
+#endregion
+
+
+
+#region POST /api/characters/create
+
+/*
+POST https://crushchat.app/api/characters/create
+{
+    "name": "Test",
+    "description": "Test 1",
+    "persona": "Test's Persona: Test 3\n",
+    "imagePrompt": "Test 2",
+    "initialMessages": "[{\"role\":\"You\",\"content\":\"Test 4\"},{\"role\":\"Bot\",\"content\":\"Test 5\"}]",
+    "thumbnail": "",
+    "tags": ["Female"],
+    "isPrivate": true
+}
+*/
+
+app.MapPost("/api/characters/create", async (HttpRequest request, [FromBody] Character.Creation.New character) =>
+{
+    using var client = new CrushChatClient(request);
+    character.persona = $"{character.name}'s Persona: {character.persona.Trim()}\n";
+    return await client.CreateCharacterAsync(character);
+});
+
+#endregion
+
+
+
+#region POST /api/characters/update
+
+/*
+POST https://crushchat.app/api/characters/update
+{
+    "name": "Test",
+    "description": "Test 1",
+    "persona": "Test's Persona: Test 3\n",
+    "imagePrompt": "Test 2",
+    "initialMessages": "[{\"role\":\"You\",\"content\":\"Test 4\"},{\"role\":\"Bot\",\"content\":\"Test 5\"}]",
+    "tags": ["Female"],
+    "isPrivate": true,
+    "id": "clmht31kz1a8zs6d55jp08y9h"
+}
+*/
+
+app.MapPost("/api/characters/update", async (HttpRequest request, [FromBody] Character.Creation.Edit.WithMemories character) =>
+{
+    using var client = new CrushChatClient(request);
+    character.persona = $"{character.name}'s Persona: {character.persona.Trim()}\n";
+    return await client.EditCharacterAsync(character);
+});
+
+#endregion
+
+
+
+#region GET /api/characters/{characterId}/delete
+
+app.MapGet("/api/characters/{characterId}/delete", async (HttpRequest request, string characterId) =>
+{
+    using var client = new CrushChatClient(request);
+
+    using var message = client.CreateMessage(
+        HttpMethod.Delete,
+        $"/api/characters/{characterId}/delete"
+    );
+
+    var (success, response) = await client.SendAsync(message);
+    
+    if (success)
+    {
+
+        File.Delete(Path.Combine("Data", "Characters", $"{characterId}.json"));
+        File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
+    }
+
+    return response;
 });
 
 #endregion
