@@ -47,9 +47,9 @@ body.loading::-webkit-scrollbar-thumb:hover {
 
 .ripple > .ripple {
     position: absolute;
-    background-color: #fff2;
-    width: 4rem;
-    height: 4rem;
+    background-color: var(--button__background-color__active);
+    width: 2rem;
+    aspect-ratio: 1;
     border-radius: 50%;
     pointer-events: none;
     transform-origin: center center;

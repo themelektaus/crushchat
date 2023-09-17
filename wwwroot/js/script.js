@@ -946,6 +946,7 @@ class App
         queryAll(`.ripple`).forEach($ =>
         {
             const lastChild = $.lastChild
+            
             if (lastChild instanceof Text)
             {
                 const $div = $.create(`div`)
@@ -1729,7 +1730,8 @@ class ChatPage extends Page
     
     refreshSendMessageButton()
     {
-        this.$sendMessageButton.setHtml(this.$message.value ? `Send` : `Receive`)
+        this.$sendMessageButton.children[0].toggleClass(`display-none`, !this.$message.value)
+        this.$sendMessageButton.children[1].toggleClass(`display-none`, this.$message.value)
     }
     
     async sendMessageAsync()

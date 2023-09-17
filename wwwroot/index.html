@@ -86,7 +86,10 @@
                 <div class="loader"></div>
                 <div class="bottombar">
                     <input data-bind="message" class="flex-1" placeholder="Leave empty to get a reply">
-                    <button class="ripple" data-action="pages.chat.sendMessageAsync"></button>
+                    <button class="ripple" data-action="pages.chat.sendMessageAsync">
+                        <div style="position: relative; pointer-events: none; ">Receive</div>
+                        <div style="position: relative; pointer-events: none; ">Send</div>
+                    </button>
                     <button data-action="pages.chat.openMenu" class="menu-button"></button>
                     <div class="overlay"></div>
                     <div class="menu">
