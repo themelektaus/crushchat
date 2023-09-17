@@ -15,12 +15,12 @@ public class Character
             {
                 public Details details { get; set; }
 
-                public void WriteDetails()
+                public void WriteDetails(string userId)
                 {
                     if (details is null)
                         return;
 
-                    var folder = Directory.CreateDirectory(Path.Combine("Data", "CharacterDetails"));
+                    var folder = Directory.CreateDirectory(Path.Combine("UserData", userId, "CharacterDetails"));
                     var path = Path.Combine(folder.FullName, $"{id}.json");
                     File.WriteAllText(path, details.ToJson());
                     details = null;
@@ -63,7 +63,7 @@ public class Character
 
         public class Memory
         {
-            public string role { get; set; }
+            //public string role { get; set; }
             public string content { get; set; }
         }
         public List<Memory> memories { get; set; }
@@ -71,14 +71,14 @@ public class Character
     
     public Details details { get; set; }
 
-    public Character Prepare()
+    public Character Prepare(string userId)
     {
         initialMessages ??= "[]";
 
         var index = persona.IndexOf("'s Persona:");
         personaFiltered = persona[(index + 11)..].Trim();
 
-        var folder = Directory.CreateDirectory(Path.Combine("Data", "CharacterDetails"));
+        var folder = Directory.CreateDirectory(Path.Combine("UserData", userId, "CharacterDetails"));
         var file = new FileInfo(Path.Combine(folder.FullName, $"{id}.json"));
 
         details = file.Exists

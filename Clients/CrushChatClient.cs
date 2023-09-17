@@ -9,12 +9,17 @@ public class CrushChatClient : IDisposable
     readonly HttpClientHandler handler;
     readonly HttpClient client;
 
+    public string userId { get; private set; }
+
     public CrushChatClient(HttpRequest request)
     {
         this.request = request;
 
         handler = new HttpClientHandler() { UseCookies = false };
         client = new(handler) { BaseAddress = new("https://crushchat.app") };
+
+        if (request.Headers.TryGetValue("X-User-ID", out var _userId))
+            userId = _userId;
     }
 
     public void Dispose()
@@ -42,9 +47,12 @@ public class CrushChatClient : IDisposable
 
     public async Task<List<Character>> GetCharactersAsync()
     {
+        if (userId is null)
+            return new();
+
         List<Character> characters;
 
-        var folder = new DirectoryInfo(Path.Combine("Data", "Characters"));
+        var folder = new DirectoryInfo(Path.Combine("UserData", userId, "Characters"));
 
         var cachedCharacters = folder.Exists ? folder
             .EnumerateFiles()
@@ -88,7 +96,7 @@ public class CrushChatClient : IDisposable
                 File.WriteAllText(Path.Combine(folder.FullName, $"{character.id}.json"), character.ToJson());
         }
 
-        characters.ForEach(x => x.Prepare());
+        characters.ForEach(x => x.Prepare(userId));
 
         if (request.NeedsTranslation(out var language))
             foreach (var character in characters)
@@ -99,9 +107,12 @@ public class CrushChatClient : IDisposable
 
     public Character GetCharacter(string characterId)
     {
-        var file = new FileInfo(Path.Combine("Data", "Characters", $"{characterId}.json"));
+        if (userId is null)
+            return default;
+
+        var file = new FileInfo(Path.Combine("UserData", userId, "Characters", $"{characterId}.json"));
         return file.Exists
-            ? File.ReadAllText(file.FullName).FromJson<Character>().Prepare()
+            ? File.ReadAllText(file.FullName).FromJson<Character>().Prepare(userId)
             : default;
     }
 
@@ -112,7 +123,10 @@ public class CrushChatClient : IDisposable
         bool translate = false
     )
     {
-        var jsonFile = Path.Combine("Data", "Messages", $"{characterId}.json");
+        if (userId is null)
+            return new();
+
+        var jsonFile = Path.Combine("UserData", userId, "Messages", $"{characterId}.json");
 
         var path = $"/api/messages?characterId={characterId}&limit=80";
 
@@ -162,7 +176,7 @@ public class CrushChatClient : IDisposable
 
             messages.ForEach(x => x.content = x.content.Trim());
 
-            Directory.CreateDirectory(Path.Combine("Data", "Messages"));
+            Directory.CreateDirectory(Path.Combine("UserData", userId, "Messages"));
             File.WriteAllText(jsonFile, messages.ToJson());
         }
 
@@ -175,7 +189,11 @@ public class CrushChatClient : IDisposable
 
     public void AddMemories(List<Character.Message> messages, string characterId)
     {
-        var details = GetCharacter(characterId).details;
+        var character = GetCharacter(characterId);
+        if (character is null)
+            return;
+
+        var details = character.details;
         if (details is null)
             return;
 
@@ -248,6 +266,9 @@ public class CrushChatClient : IDisposable
 
     public async Task<ImageInfo> GenerateImageAsync(ImageRequest imageRequest)
     {
+        if (userId is null)
+            return default;
+
         using var message = CreateMessage(HttpMethod.Post, "/api/generate-image");
 
         message.Content = new StringContent(
@@ -279,7 +300,7 @@ public class CrushChatClient : IDisposable
         if (!imageResponse.IsSuccessStatusCode)
             return default;
 
-        var imagesFolder = Path.Combine("Data", "Images");
+        var imagesFolder = Path.Combine("UserData", userId, "Images");
         Directory.CreateDirectory(imagesFolder);
 
         var imageName = imageUrl.ToMD5();
@@ -296,7 +317,7 @@ public class CrushChatClient : IDisposable
             imageInfo.ToJson()
         );
 
-        return imageInfo.Load(imageName);
+        return imageInfo.Load(userId, imageName);
     }
 
     public async Task<HttpResponseMessage> CreateCharacterAsync(Character.Creation.New character)
@@ -316,28 +337,29 @@ public class CrushChatClient : IDisposable
 
     public async Task<HttpResponseMessage> EditCharacterAsync(Character.Creation.Edit.WithDetails character)
     {
+        if (userId is null)
+            return default;
+
         HttpResponseMessage response = default;
 
-        if (request.Headers.TryGetValue("X-User-ID", out var userId))
+        var _character = GetCharacter(character.id);
+        if (_character is not null && _character.userId == userId)
         {
-            if (GetCharacter(character.id).userId == userId)
-            {
-                var message = CreateMessage(HttpMethod.Post, "/api/characters/update");
+            var message = CreateMessage(HttpMethod.Post, "/api/characters/update");
 
-                message.Content = new StringContent(
-                    (character as Character.Creation.Edit).ToJson(),
-                    Encoding.UTF8,
-                    "application/json"
-                );
+            message.Content = new StringContent(
+                (character as Character.Creation.Edit).ToJson(),
+                Encoding.UTF8,
+                "application/json"
+            );
 
-                (_, response) = await SendAsync(message);
-            }
+            (_, response) = await SendAsync(message);
         }
 
-        character.WriteDetails();
+        character.WriteDetails(userId);
 
-        var _character = GetCharacter(character.id);
-        if (_character is not null)
+        _character = GetCharacter(character.id);
+        if (_character is not null && _character.userId == userId)
         {
             _character.name = character.name;
             _character.description = character.description;
@@ -345,8 +367,9 @@ public class CrushChatClient : IDisposable
             _character.initialMessages = character.initialMessages;
             _character.persona = character.persona;
 
+            Directory.CreateDirectory(Path.Combine("UserData", userId, "Characters"));
             File.WriteAllText(
-                Path.Combine("Data", "Characters", $"{character.id}.json"),
+                Path.Combine("UserData", userId, "Characters", $"{character.id}.json"),
                 _character.ToJson()
             );
         }
@@ -356,27 +379,24 @@ public class CrushChatClient : IDisposable
 
     public async Task<HttpResponseMessage> DeleteCharacterAsync(string characterId)
     {
-        HttpResponseMessage response = default;
+        if (userId is null)
+            return default;
 
-        if (request.Headers.TryGetValue("X-User-ID", out var userId))
+        if (GetCharacter(characterId).userId != userId)
+            return default;
+
+        using var message = CreateMessage(
+            HttpMethod.Delete,
+            $"/api/characters/{characterId}/delete"
+        );
+
+        var (sucess, response) = await SendAsync(message);
+
+        if (sucess)
         {
-            if (GetCharacter(characterId).userId == userId)
-            {
-                if (!request.GetQueryBoolean("force"))
-                {
-
-                    using var message = CreateMessage(
-                        HttpMethod.Delete,
-                        $"/api/characters/{characterId}/delete"
-                    );
-
-                    (_, response) = await SendAsync(message);
-                }
-            }
+            File.Delete(Path.Combine("UserData", "Characters", $"{characterId}.json"));
+            File.Delete(Path.Combine("UserData", "Messages", $"{characterId}.json"));
         }
-
-        File.Delete(Path.Combine("Data", "Characters", $"{characterId}.json"));
-        File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
 
         return response;
     }

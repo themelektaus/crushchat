@@ -1,6 +1,7 @@
 using CrushChatApi;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -295,7 +296,7 @@ app.MapGet("/api/characters/{characterId}/messages/delete/{index}", async (HttpR
 
     var (success, response) = await client.SendAsync(message);
     if (success)
-        File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
+        File.Delete(Path.Combine("UserData", client.userId, "Messages", $"{characterId}.json"));
 
     return response;
 });
@@ -317,7 +318,7 @@ app.MapGet("/api/characters/{characterId}/messages/clear", async (HttpRequest re
 
     var (success, response) = await client.SendAsync(message);
     if (success)
-        File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
+        File.Delete(Path.Combine("UserData", client.userId, "Messages", $"{characterId}.json"));
 
     return response;
 });
@@ -431,17 +432,26 @@ app.MapGet("/api/generate-image", async (HttpRequest request) =>
 
 #region GET /api/images
 
-app.MapGet("/api/images", () =>
+app.MapGet("/api/images", (HttpRequest request) =>
 {
+    using var client = new CrushChatClient(request);
+    if (client.userId is null)
+        return new();
+
+    var folder = Path.Combine("UserData", client.userId, "Images");
+    if (!Directory.Exists(folder))
+        return new();
+
     return Directory
-        .EnumerateFiles(Path.Combine("Data", "Images"), "*.json")
+        .EnumerateFiles(folder, "*.json")
         .Select(x => new FileInfo(x))
         .OrderByDescending(x => x.CreationTimeUtc)
         .Select(x =>
         {
             var info = File.ReadAllText(x.FullName).FromJson<ImageInfo>();
-            return info.Load(Path.GetFileNameWithoutExtension(x.FullName));
-        });
+            return info.Load(client.userId, Path.GetFileNameWithoutExtension(x.FullName));
+        })
+        .ToList();
 });
 
 #endregion
@@ -450,11 +460,16 @@ app.MapGet("/api/images", () =>
 
 #region GET /api/images/{id}
 
-app.MapGet("/api/images/{id}", async (HttpRequest request, string id) =>
+app.MapGet("/api/images/{userId}/{id}", async (HttpRequest request, string userId, string id) =>
 {
-    var basePath = Path.Combine("Data", "Images", id);
+    var basePath = Path.Combine("UserData", userId, "Images", id);
+
     if (request.GetQueryBoolean("delete", false))
     {
+        using var client = new CrushChatClient(request);
+        if (client.userId != userId)
+            return Results.BadRequest();
+
         if (File.Exists($"{basePath}.json"))
             File.Delete($"{basePath}.json");
 

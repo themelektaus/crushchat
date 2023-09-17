@@ -4,6 +4,8 @@
 /Build/
 /Data
 /Data/
+/UserData
+/UserData/
 /obj/
 /CrushChatApi.csproj.user
 *.pubxml.user

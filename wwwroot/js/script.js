@@ -1802,6 +1802,7 @@ class ImageGeneratorPage extends Page
     {
         this.$image.setBackgroundImage(``)
         
+        this.userId = null
         this.imageId = null
         this.isRealistic = false
         this.prompt = ``
@@ -1841,8 +1842,12 @@ class ImageGeneratorPage extends Page
         for (const $ of this.$historyContent.children)
             $.toggleClass(`active`, $.dataset.id == image.id)
         
+        if (!image)
+            return
+        
         this.$image.setBackgroundImage(image.url)
         
+        this.userId = image.userId
         this.imageId = image.id
         this.isRealistic = image.request.isRealistic
         this.prompt = image.request.prompt
@@ -1907,7 +1912,7 @@ class ImageGeneratorPage extends Page
         if (permission.state == "denied")
             return
         
-        await navigator.clipboard.writeText(`${location.origin}/api/images/${this.imageId}`)
+        await navigator.clipboard.writeText(`${location.origin}/api/images/${this.userId}/${this.imageId}`)
     }
     
     async copyRelativeUrlAsync()
@@ -1916,7 +1921,7 @@ class ImageGeneratorPage extends Page
         if (permission.state == "denied")
             return
         
-        await navigator.clipboard.writeText(`/api/images/${this.imageId}`)
+        await navigator.clipboard.writeText(`/api/images/${this.userId}/${this.imageId}`)
     }
 }
 
