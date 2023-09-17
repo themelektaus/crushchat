@@ -211,13 +211,13 @@ let cssRootDefault =
                 name: "Background (Hover)",
                 type: "color",
                 key: "--character__background-color__hover",
-                value: "#330033"
+                value: "#330020"
             },
             {
                 name: "Border (Hover)",
                 type: "color",
                 key: "--character__border-color__hover",
-                value: "#8B008B"
+                value: "#8A0050"
             }
         ]
     },
@@ -2081,6 +2081,12 @@ class MessageDialog extends Dialog
         this.transferTo(this.$content)
         
         this.$.query(`[data-bind="imagePrompt"]`).placeholder = userData.character.imagePrompt || "Enter image prompt"
+        
+        const isYou = userData.message.role == `You`
+        
+        this.$.query(`[data-action="dialogs.message.generateMessage"]`).parentNode
+            .toggleClass(`display-none`, isYou)
+            .toggleClass(`important`, isYou)
         
         const $image = this.$content.query(`.image`)
         

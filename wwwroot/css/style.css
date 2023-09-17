@@ -382,7 +382,7 @@ input[type="checkbox"] {
     border-radius: .25rem;
 }
 
-[data-page="characters"] .characters > .section > .content > .character.disabled {
+[data-page="characters"] .characters > .section > .content > .clickable.disabled {
     opacity: .5;
 }
 
@@ -466,6 +466,10 @@ input[type="checkbox"] {
 
 [data-page="chat"] > .messages > .message:not(.disabled) {
     cursor: pointer;
+}
+
+[data-page="chat"]:has(.loader.display-none) > .messages > .message.disabled {
+    opacity: .5;
 }
 
 [data-page="chat"] > .messages > .message:has(.image) {

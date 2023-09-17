@@ -160,6 +160,8 @@ public class CrushChatClient : IDisposable
                 messages = character.messages ?? new();
             }
 
+            messages.ForEach(x => x.content = x.content.Trim());
+
             Directory.CreateDirectory(Path.Combine("Data", "Messages"));
             File.WriteAllText(jsonFile, messages.ToJson());
         }
