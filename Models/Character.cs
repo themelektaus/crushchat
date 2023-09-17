@@ -6,24 +6,24 @@ public class Character
     {
         public class New : Creation
         {
-            
+
         }
 
         public class Edit : Creation
         {
-            public class WithMemories : Edit
+            public class WithDetails : Edit
             {
-                public Memory[] memories { get; set; }
+                public Details details { get; set; }
 
-                public void WriteMemories()
+                public void WriteDetails()
                 {
-                    if (memories is null)
+                    if (details is null)
                         return;
 
-                    var folder = Directory.CreateDirectory(Path.Combine("Data", "Memories"));
+                    var folder = Directory.CreateDirectory(Path.Combine("Data", "CharacterDetails"));
                     var path = Path.Combine(folder.FullName, $"{id}.json");
-                    File.WriteAllText(path, memories.ToJson());
-                    memories = null;
+                    File.WriteAllText(path, details.ToJson());
+                    details = null;
                 }
             }
 
@@ -51,18 +51,25 @@ public class Character
     public string personaFiltered { get; set; }
     public string personaFilteredTranslated { get; set; }
     public string initialMessages { get; set; }
-    public int upvotes { get; set; }
-
+    public int upvote { get; set; }
     public bool isPrivate { get; set; }
+
     public bool recent { get; set; }
     public bool hot { get; set; }
 
-    public class Memory
+    public class Details
     {
-        public string role { get; set; }
-        public string content { get; set; }
+        public string thumbnail { get; set; }
+
+        public class Memory
+        {
+            public string role { get; set; }
+            public string content { get; set; }
+        }
+        public List<Memory> memories { get; set; }
     }
-    public List<Memory> memories { get; set; }
+    
+    public Details details { get; set; }
 
     public Character Prepare()
     {
@@ -71,11 +78,11 @@ public class Character
         var index = persona.IndexOf("'s Persona:");
         personaFiltered = persona[(index + 11)..].Trim();
 
-        var folder = Directory.CreateDirectory(Path.Combine("Data", "Memories"));
+        var folder = Directory.CreateDirectory(Path.Combine("Data", "CharacterDetails"));
         var file = new FileInfo(Path.Combine(folder.FullName, $"{id}.json"));
 
-        memories = file.Exists
-            ? File.ReadAllText(file.FullName).FromJson<List<Memory>>()
+        details = file.Exists
+            ? File.ReadAllText(file.FullName).FromJson<Details>()
             : new();
 
         return this;

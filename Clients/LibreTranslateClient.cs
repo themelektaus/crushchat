@@ -42,8 +42,9 @@ public class LibreTranslateClient : ITranslationClient
         foreach (var translation in pending)
         {
             var original = translation.original;
+            original = Regex.Replace(original, "\\*(.*?)\\*", "($1)").Trim();
 
-            original = Regex.Replace(original, "\\*(.*?)\\*", "($1)");
+            Console.WriteLine($"LibreTranslate translates from {sourceLanguage} to {targetLanguage}: \"{original}\"");
 
             using var message = CreateMessage(sourceLanguage, targetLanguage, original);
 

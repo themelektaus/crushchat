@@ -50,6 +50,9 @@ public class DeepLClient : ITranslationClient
         {
             var block = pending.Take(10).ToList();
 
+            foreach (var item in block)
+                Console.WriteLine($"DeepL translates from {sourceLanguage} to {targetLanguage}: \"{item.original}\"");
+
             using var message = CreateMessage(
                 request.Headers["X-DeepL-Auth-Key"],
                 sourceLanguage,

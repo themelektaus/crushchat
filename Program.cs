@@ -1,6 +1,7 @@
 using CrushChatApi;
 
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,19 @@ var app = builder.Build();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
+
+
+#region GET /api/me
+
+app.MapGet("/api/me", async (HttpRequest request) =>
+{
+    using var client = new CrushChatClient(request);
+    var me = await client.GetAsync<Me>("/api/me");
+    return me?.user;
+});
+
+#endregion
 
 
 
@@ -164,7 +178,7 @@ app.MapGet("/api/characters/{characterId}/messages/generate", async (HttpRequest
         return default;
 
     var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
-    
+
     client.AddMemories(messages, character.id);
 
     var messageRequest = new MessageRequest
@@ -368,9 +382,9 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
 
 
 
-#region GET /api/characters/{characterId}/generate-image
+#region GET /api/characters/{characterId}/regenerate-image
 
-app.MapGet("/api/characters/{characterId}/generate-image", async (HttpRequest request, string characterId) =>
+app.MapGet("/api/characters/{characterId}/regenerate-image", async (HttpRequest request, string characterId) =>
 {
     using var client = new CrushChatClient(request);
 
@@ -485,20 +499,6 @@ app.MapGet("/api/characters/{characterId}/messages/delete-image/{index}", async 
 
 #region POST /api/characters/create
 
-/*
-POST https://crushchat.app/api/characters/create
-{
-    "name": "Test",
-    "description": "Test 1",
-    "persona": "Test's Persona: Test 3\n",
-    "imagePrompt": "Test 2",
-    "initialMessages": "[{\"role\":\"You\",\"content\":\"Test 4\"},{\"role\":\"Bot\",\"content\":\"Test 5\"}]",
-    "thumbnail": "",
-    "tags": ["Female"],
-    "isPrivate": true
-}
-*/
-
 app.MapPost("/api/characters/create", async (HttpRequest request, [FromBody] Character.Creation.New character) =>
 {
     using var client = new CrushChatClient(request);
@@ -512,21 +512,7 @@ app.MapPost("/api/characters/create", async (HttpRequest request, [FromBody] Cha
 
 #region POST /api/characters/update
 
-/*
-POST https://crushchat.app/api/characters/update
-{
-    "name": "Test",
-    "description": "Test 1",
-    "persona": "Test's Persona: Test 3\n",
-    "imagePrompt": "Test 2",
-    "initialMessages": "[{\"role\":\"You\",\"content\":\"Test 4\"},{\"role\":\"Bot\",\"content\":\"Test 5\"}]",
-    "tags": ["Female"],
-    "isPrivate": true,
-    "id": "clmht31kz1a8zs6d55jp08y9h"
-}
-*/
-
-app.MapPost("/api/characters/update", async (HttpRequest request, [FromBody] Character.Creation.Edit.WithMemories character) =>
+app.MapPost("/api/characters/update", async (HttpRequest request, [FromBody] Character.Creation.Edit.WithDetails character) =>
 {
     using var client = new CrushChatClient(request);
     character.persona = $"{character.name}'s Persona: {character.persona.Trim()}\n";
@@ -542,22 +528,7 @@ app.MapPost("/api/characters/update", async (HttpRequest request, [FromBody] Cha
 app.MapGet("/api/characters/{characterId}/delete", async (HttpRequest request, string characterId) =>
 {
     using var client = new CrushChatClient(request);
-
-    using var message = client.CreateMessage(
-        HttpMethod.Delete,
-        $"/api/characters/{characterId}/delete"
-    );
-
-    var (success, response) = await client.SendAsync(message);
-    
-    if (success)
-    {
-
-        File.Delete(Path.Combine("Data", "Characters", $"{characterId}.json"));
-        File.Delete(Path.Combine("Data", "Messages", $"{characterId}.json"));
-    }
-
-    return response;
+    return await client.DeleteCharacterAsync(characterId);
 });
 
 #endregion
