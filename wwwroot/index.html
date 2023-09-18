@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title>My CrushChat Client</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=2023.09.18-1445">
-        <script src="js/script.js?v=2023.09.18-1445" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.18-2105">
+        <script src="js/script.js?v=2023.09.18-2105" defer></script>
     </head>
     
     <body class="display-none">
@@ -339,26 +339,32 @@
         
         <!-- Delete Character Dialog -->
         
-        <div class="overlay""></div>
+        <div class="overlay"></div>
         <div data-dialog="deleteCharacter" style="width: 440px; ">
-            <div class="title">Warning</div>
-            <div class="content" style="padding-top: 0; ">Are you sure you want to delete this character? This action cannot be undone.</div>
+            <div class="title" style="text-align: center; padding-left: 1rem; ">Warning</div>
+            <div class="content" style="text-align: center; padding-top: 0; ">
+                Are you sure you want to delete this character?
+                This action cannot be undone.
+            </div>
             <div class="bottom">
                 <button class="ripple" data-action="dialogs.deleteCharacter.yesAsync">Delete</button>
-                <button class="ripple" data-action="dialogs.deleteCharacter.cancel">No</button>
+                <button class="ripple" data-action="dialogs.deleteCharacter.cancel">Cancel</button>
             </div>
         </div>
         
         
         <!-- Clear Chat Dialog -->
         
-        <div class="overlay""></div>
+        <div class="overlay"></div>
         <div data-dialog="clearChat" style="width: 380px; ">
-            <div class="title">Warning</div>
-            <div class="content" style="padding-top: 0; ">Are you sure you want to clear the chat? This action cannot be undone.</div>
+            <div class="title" style="text-align: center; padding-left: 1rem; ">Warning</div>
+            <div class="content" style="text-align: center; padding-top: 0; ">
+                Are you sure you want to clear the chat?
+                This action cannot be undone.
+            </div>
             <div class="bottom">
                 <button class="ripple" data-action="dialogs.clearChat.yesAsync">Clear</button>
-                <button class="ripple" data-action="dialogs.clearChat.cancel">No</button>
+                <button class="ripple" data-action="dialogs.clearChat.cancel">Cancel</button>
             </div>
         </div>
         
@@ -370,8 +376,24 @@
             <div class="title">Appearance</div>
             <div class="content"></div>
             <div class="bottom">
-                <button class="ripple" data-action="dialogs.appearance.resetAsync">Reset</button>
+                <button class="ripple" data-action="openDialogAsync" data-target="appearanceReset">Reset</button>
                 <button class="ripple" data-action="dialogs.appearance.cancel">Close</button>
+            </div>
+        </div>
+        
+        
+        <!-- Appearance Reset Dialog -->
+        
+        <div class="overlay" style="z-index: 1; "></div>
+        <div data-dialog="appearanceReset" style="width: 420px; ">
+            <div class="title" style="text-align: center; padding-left: 1rem; ">Warning</div>
+            <div class="content" style="text-align: center; padding-top: 0; ">
+                Are you sure you want to reset the appearance?
+                This action cannot be undone.
+            </div>
+            <div class="bottom">
+                <button class="ripple" data-action="dialogs.appearanceReset.reset">Reset</button>
+                <button class="ripple" data-action="dialogs.appearanceReset.cancel">Cancel</button>
             </div>
         </div>
         

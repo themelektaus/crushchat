@@ -100,7 +100,7 @@ let cssRootDefault =
                 name: "Border",
                 type: "hsl",
                 key: "--button__border-color",
-                value: [ hue, 100, 10 ]
+                value: [ hue, 100, 15 ]
             },
             {
                 name: "Border (Hover)",
@@ -406,7 +406,7 @@ Object.defineProperties(EventTarget.prototype,
         value: function(min, max, value, onInput)
         {
             const $ = this.create(`div`)
-            $.setAttribute(`style`, `display: flex; align-items: center; gap: 0.25rem; `)
+            $.addClass(`range`)
             
             const $input = $.create(`input`)
             $input.type = `range`
@@ -646,6 +646,20 @@ Object.defineProperties(Array.prototype,
                 this.push(item)
             }
             return item
+        }
+    },
+    asCssHsl:
+    {
+        value: function()
+        {
+            return `hsl(${this[0]}, ${this[1]}%, ${this[2]}%)`
+        }
+    },
+    asCssHsla:
+    {
+        value: function()
+        {
+            return `hsla(${this[0]}, ${this[1]}%, ${this[2]}%, ${this[3]})`
         }
     }
 })
@@ -917,9 +931,10 @@ class App
             new CharacterDialog,
             new MessageDialog,
             new SettingsDialog,
-            new AppearanceDialog,
             new DeleteCharacterDialog,
             new ClearChatDialog,
+            new AppearanceDialog,
+            new AppearanceResetDialog,
         ])
         {
             this.dialogs[dialog.name] = dialog
@@ -1332,11 +1347,11 @@ class App
                 }
                 else if (value.type == `hsl`)
                 {
-                    _value = `hsl(${value.value[0]}, ${value.value[1]}%, ${value.value[2]}%)`
+                    _value = value.value.asCssHsl()
                 }
                 else if (value.type == `hsla`)
                 {
-                    _value = `hsla(${value.value[0]}, ${value.value[1]}%, ${value.value[2]}%, ${value.value[3]})`
+                    _value = value.value.asCssHsla()
                 }
                 set(value.key, _value);
             }
@@ -1345,9 +1360,8 @@ class App
         const body = this.cssRoot.find(x => x.category == `Body`)
         const backgroundColor = body.values.find(x => x.key == `--body__background-color`)
         
-        let v = backgroundColor.value
-        set(`--bottombar__background-color__start`, `hsla(${v[0]}, ${v[1]}%, ${v[2]}%, 1)`)
-        set(`--bottombar__background-color__end`, `hsla(${v[0]}, ${v[1]}%, ${v[2]}%, 0)`)
+        set(`--bottombar__background-color__start`, [...backgroundColor.value, 1].asCssHsla())
+        set(`--bottombar__background-color__end`, [...backgroundColor.value, 0].asCssHsla())
         
         localStorage.setItem(`appearance`, this.cssRoot.toJson())
     }
@@ -2311,75 +2325,63 @@ class AppearanceDialog extends Dialog
                     continue
                 }
                 
-                if (value.type == `hsl`)
+                if (value.type == `hsl` || value.type == `hsla`)
                 {
                     const $preview = $field.create(`div`)
-                    $preview.setAttribute(`style`, `flex-basis: 4rem; width: 100%; border-radius: 0.5rem; border: 2px solid #fff1; `)
+                    $preview.addClass(`color-preview`)
                     
-                    const apply = () =>
+                    const updatePreview = () =>
                     {
-                        $preview.style.backgroundColor = `hsl(${value.value[0]}, ${value.value[1]}%, ${value.value[2]}%)`
-                        App.instance.applyCssRoot()
+                        $preview.style.backgroundColor = value.type == `hsl`
+                            ? value.value.asCssHsl()
+                            : value.value.asCssHsla()
                     }
-                    apply()
+                    updatePreview()
+                    
+                    let $s, $b
+                    
+                    const updateSB = () =>
+                    {
+                        $s.query(`input[type="range"]`).style.backgroundImage
+                            = `linear-gradient(90deg, hsl(${value.value[0]}, 0%, 50%), hsl(${value.value[0]}, 100%, 50%))`
+                        $b.query(`input[type="range"]`).style.backgroundImage
+                            = `linear-gradient(90deg, hsl(${value.value[0]}, 50%, 0%) 0%, hsl(${value.value[0]}, 50%, 50%) 50%, hsl(${value.value[0]}, 50%, 100%))`
+                    }
                     
                     $field.createRangeInput(0, 360, value.value[0], $ =>
                     {
+                        updateSB()
                         value.value[0] = $.value
-                        apply()
-                    })
-                    
-                    $field.createRangeInput(0, 100, value.value[1], $ =>
-                    {
-                        value.value[1] = $.value
-                        apply()
-                    })
-                    
-                    $field.createRangeInput(0, 100, value.value[2], $ =>
-                    {
-                        value.value[2] = $.value
-                        apply()
-                    })
-                    
-                    continue
-                }
-                
-                if (value.type == `hsla`)
-                {
-                    const $preview = $field.create(`div`)
-                    $preview.setAttribute(`style`, `flex-basis: 4rem; width: 100%; border-radius: 0.5rem; border: 2px solid #fff1; `)
-                    
-                    const apply = () =>
-                    {
-                        $preview.style.backgroundColor = `hsla(${value.value[0]}, ${value.value[1]}%, ${value.value[2]}%, ${value.value[3]})`
+                        updatePreview()
                         App.instance.applyCssRoot()
-                    }
-                    apply()
+                    }).addClass(`hue`)
                     
-                    $field.createRangeInput(0, 360, value.value[0], $ =>
-                    {
-                        value.value[0] = $.value
-                        apply()
-                    })
-                    
-                    $field.createRangeInput(0, 100, value.value[1], $ =>
+                    $s = $field.createRangeInput(0, 100, value.value[1], $ =>
                     {
                         value.value[1] = $.value
-                        apply()
+                        updatePreview()
+                        App.instance.applyCssRoot()
                     })
                     
-                    $field.createRangeInput(0, 100, value.value[2], $ =>
+                    $b = $field.createRangeInput(0, 100, value.value[2], $ =>
                     {
                         value.value[2] = $.value
-                        apply()
-                    })
+                        updatePreview()
+                        App.instance.applyCssRoot()
+                    }).addClass(`brightness`)
                     
-                    $field.createRangeInput(0, 100, value.value[3] * 100, $ =>
+                    updateSB()
+                    
+                    if (value.type == `hsla`)
                     {
-                        value.value[3] = $.value / 100.0
-                        apply()
-                    })
-                    
+                        $field.createRangeInput(0, 100, value.value[3] * 100, $ =>
+                        {
+                            value.value[3] = $.value / 100.0
+                            updatePreview()
+                            App.instance.applyCssRoot()
+                        })
+                    }
+                        
                     continue
                 }
             }
@@ -2388,10 +2390,9 @@ class AppearanceDialog extends Dialog
     
     async resetAsync()
     {
-        App.instance.cssRoot = []
-        App.instance.applyCssRoot()
         
-        await this.onOpenAsync()
+        
+        
     }
 }
 
@@ -2445,6 +2446,22 @@ class ClearChatDialog extends Dialog
             this.page.$message.focus()
         
         enableInput()
+    }
+}
+
+class AppearanceResetDialog extends Dialog
+{
+    get name()
+    {
+        return `appearanceReset`
+    }
+    
+    reset()
+    {
+        this.cancel()
+        App.instance.cssRoot = []
+        App.instance.applyCssRoot()
+        App.instance.dialogs.appearance.onOpenAsync()
     }
 }
 

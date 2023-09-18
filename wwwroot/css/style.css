@@ -279,7 +279,6 @@ input[type="checkbox"] {
     background-image: url(../res/refresh.svg);
 }
 
-[data-dialog="clearChat"] > .title,
 .bottombar .menu > div[data-action="pages.chat.clearChatAsync"] {
     background-image: url(../res/delete.svg);
 }
@@ -293,13 +292,13 @@ input[type="checkbox"] {
     background-image: url(../res/user.svg);
 }
 
-[data-dialog="deleteCharacter"] > .title {
-    background-image: url(../res/delete.svg);
-}
-
 .bottombar .menu > div[data-action="pages.imageGenerator.copyAbsoluteUrlAsync"],
 .bottombar .menu > div[data-action="pages.imageGenerator.copyRelativeUrlAsync"] {
     background-image: url(../res/copy.svg);
+}
+
+[data-dialog="message"] > .title {
+    background-image: url(../res/chat-bubble.svg);
 }
 
 .bottombar > input,
@@ -824,6 +823,13 @@ input[type="checkbox"] {
     
 }
 
+.field > .color-preview {
+    flex-basis: 4rem;
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 2px solid #fff1;
+}
+
 input[type="color"] {
     background-color: transparent;
     border-radius: .5rem;
@@ -843,6 +849,13 @@ input[type="color"]::-webkit-color-swatch {
     border: none;
 }
 
+.range {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+}
+
 input[type="range"] {
     width: 100%;
     box-sizing: border-box;
@@ -851,6 +864,26 @@ input[type="range"] {
     appearance: none;
     background: transparent;
     height: 1rem;
+}
+
+.range > input[type="range"]:not(:hover) {
+    background-image: none !important;
+}
+
+.range.hue > input[type="range"] {
+    background-image: linear-gradient(90deg,
+        hsl(0, 100%, 50%) 0%,
+        hsl(36, 100%, 50%) 10%,
+        hsl(72, 100%, 50%) 20%,
+        hsl(108, 100%, 50%) 30%,
+        hsl(144, 100%, 50%) 40%,
+        hsl(180, 100%, 50%) 50%,
+        hsl(216, 100%, 50%) 60%,
+        hsl(252, 100%, 50%) 70%,
+        hsl(288, 100%, 50%) 80%,
+        hsl(324, 100%, 50%) 90%,
+        hsl(360, 100%, 50%) 100%
+    );
 }
 
 input[type="range"]:hover {
