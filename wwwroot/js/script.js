@@ -386,7 +386,7 @@ Object.defineProperties(EventTarget.prototype,
             
             if (!me)
             {
-                await window.fetch(`/api/me`, options).then(x => x.json()).then(x => me = x)
+                await window.fetch(`api/me`, options).then(x => x.json()).then(x => me = x)
                 if (!me || !me.id)
                 {
                     me = null
@@ -1038,13 +1038,8 @@ class App
                 const _action = $sender.dataset.action
                 
                 if (this.closeAllMenus())
-                {
                     if (_action == `gotoPageAsync`)
-                    {
                         disableInput()
-                        await delay(200)
-                    }
-                }
                 
                 var actions = _action.split(`.`)
                 
@@ -1373,7 +1368,7 @@ class App
         let error = false
         
         const cache = !(this.preventCache === true)
-        const characters = await fetchAsync(`/api/characters?cache=${cache}`)
+        const characters = await fetchAsync(`api/characters?cache=${cache}`)
             .then(x => x.json())
             .catch(() => error = true)
         
@@ -1660,7 +1655,7 @@ class ChatPage extends Page
         if (scrollDown)
             this.scrollDown()
         
-        const url = `/api/characters/${this.character.id}/messages${options.toQueryString()}`
+        const url = `api/characters/${this.character.id}/messages${options.toQueryString()}`
         const messages = await fetchAsync(url).then(x => x.json())
         
         this.$messages.clearHtml()
@@ -1746,7 +1741,7 @@ class ChatPage extends Page
         
         if (body)
         {
-            await fetchAsync(`/api/characters/${this.character.id}/messages`, {
+            await fetchAsync(`api/characters/${this.character.id}/messages`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
                 body: body
@@ -1754,7 +1749,7 @@ class ChatPage extends Page
         }
         else
         {
-            await fetchAsync(`/api/characters/${this.character.id}/messages/generate`)
+            await fetchAsync(`api/characters/${this.character.id}/messages/generate`)
         }
         
         await this.refreshAsync({ scrollDown: true, cache: false })
@@ -1810,7 +1805,7 @@ class ImageGeneratorPage extends Page
         
         this.$historyContent.clearHtml()
         
-        const images = await fetchAsync(`/api/images`).then(x => x.json())
+        const images = await fetchAsync(`api/images`).then(x => x.json())
         
         this.firstImage = null
         
@@ -1870,7 +1865,7 @@ class ImageGeneratorPage extends Page
         
         let error = false
         const query = { realistic: this.isRealistic }
-        await fetchAsync(`/api/generate-image${query.toQueryString()}`, options)
+        await fetchAsync(`api/generate-image${query.toQueryString()}`, options)
             .catch(e => error = e)
         
         if (error)
@@ -1892,7 +1887,7 @@ class ImageGeneratorPage extends Page
         
         let error = false
         const query = { delete: true }
-        await fetchAsync(`/api/images/${this.imageId}${query.toQueryString()}`)
+        await fetchAsync(`api/images/${this.imageId}${query.toQueryString()}`)
             .catch(() => error = true)
         
         if (error)
@@ -1994,7 +1989,7 @@ class CharacterDialog extends Dialog
         this.$.query(`.field:has([data-bind="memories"])`).removeClass(`display-none`).removeClass(`important`)
         this.$.query(`[data-action="dialogs.character.deleteAsync"]`).removeClass(`display-none`)
         
-        const url = `/api/characters/${this.#chat.character.id}`
+        const url = `api/characters/${this.#chat.character.id}`
         const character = await fetchAsync(url).then(x => x.json())
         
         this.data.name = character.name
@@ -2014,7 +2009,7 @@ class CharacterDialog extends Dialog
     {
         this.cancel()
         App.instance.startLoading()
-        await fetchAsync(`/api/characters/${this.#chat.character.id}/regenerate-image`)
+        await fetchAsync(`api/characters/${this.#chat.character.id}/regenerate-image`)
         App.instance.stopLoading()
     }
     
@@ -2026,7 +2021,7 @@ class CharacterDialog extends Dialog
         
         this.$content.transferTo(this.data)
         
-        let url = `/api/characters/${this.#chat.character ? `update` : `create`}`
+        let url = `api/characters/${this.#chat.character ? `update` : `create`}`
         
         const body = {
             name: this.data.name,
@@ -2055,7 +2050,7 @@ class CharacterDialog extends Dialog
         
         if (body.id)
         {
-            this.#chat.character = await fetchAsync(`/api/characters/${body.id}`).then(x => x.json())
+            this.#chat.character = await fetchAsync(`api/characters/${body.id}`).then(x => x.json())
             App.instance.stopLoading()
             await this.#chat.refreshChatAsync()
             return
@@ -2113,7 +2108,7 @@ class MessageDialog extends Dialog
     
     async generateMessage()
     {
-        const url = `/api/characters/${this.characterId}/messages/generate/${this.messageIndex}`
+        const url = `api/characters/${this.characterId}/messages/generate/${this.messageIndex}`
         await this.applyAsync(async () => await fetchAsync(url))
     }
     
@@ -2130,13 +2125,13 @@ class MessageDialog extends Dialog
             options.headers['X-Prompt'] = this.imagePrompt
         }
         
-        const url = `/api/characters/${this.characterId}/messages/generate-image/${this.messageIndex}`
+        const url = `api/characters/${this.characterId}/messages/generate-image/${this.messageIndex}`
         await this.applyAsync(async () => await fetchAsync(url, options))
     }
     
     async deleteImageAsync()
     {
-        const url = `/api/characters/${this.characterId}/messages/delete-image/${this.messageIndex}`
+        const url = `api/characters/${this.characterId}/messages/delete-image/${this.messageIndex}`
         await this.applyAsync(async () => await fetchAsync(url))
     }
     
@@ -2144,7 +2139,7 @@ class MessageDialog extends Dialog
     {
         this.$content.transferTo(this)
         
-        const url = `/api/characters/${this.characterId}/messages/${this.messageIndex}`
+        const url = `api/characters/${this.characterId}/messages/${this.messageIndex}`
         await this.applyAsync(
             async () => await fetchAsync(url, {
                 method: 'POST',
@@ -2156,7 +2151,7 @@ class MessageDialog extends Dialog
     
     async deleteAsync()
     {
-        const url = `/api/characters/${this.characterId}/messages/delete/${this.messageIndex}`
+        const url = `api/characters/${this.characterId}/messages/delete/${this.messageIndex}`
         await this.applyAsync(async () => await fetchAsync(url))
     }
 }
@@ -2317,7 +2312,7 @@ class DeleteCharacterDialog extends Dialog
         this.cancel()
         
         App.instance.startLoading()
-        await fetchAsync(`/api/characters/${this.character.id}/delete`)
+        await fetchAsync(`api/characters/${this.character.id}/delete`)
         App.instance.stopLoading()
         
         await App.instance.gotoPageAsync(`characters`)
@@ -2342,7 +2337,7 @@ class ClearChatDialog extends Dialog
         
         disableInput()
         this.page.$messages.clearHtml()
-        await fetchAsync(`/api/characters/${this.page.character.id}/messages/clear`)
+        await fetchAsync(`api/characters/${this.page.character.id}/messages/clear`)
         
         await this.page.refreshAsync({ scrollDown: true, cache: false, translate: true })
         
