@@ -301,7 +301,7 @@ let cssRootDefault =
                 name: "Border",
                 type: "hsla",
                 key: "--dialog__border-color",
-                value: [ hue, 80, 10, .6 ]
+                value: [ hue, 100, 10, 1 ]
             },
             {
                 name: "Border (Empty Image)",
