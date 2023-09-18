@@ -25,6 +25,8 @@
 
 
 
+const hue = 330
+
 let cssRootDefault =
 [
     {
@@ -32,15 +34,15 @@ let cssRootDefault =
         values: [
             {
                 name: "Text",
-                type: "color",
+                type: "hsl",
                 key: "--body__text-color",
-                value: "#FFFFFF"
+                value: [ 0, 0, 100 ]
             },
             {
                 name: "Background",
-                type: "color",
+                type: "hsl",
                 key: "--body__background-color",
-                value: "#160711"
+                value: [ hue, 50, 10 ]
             }
         ]
     },
@@ -49,10 +51,9 @@ let cssRootDefault =
         values: [
             {
                 name: "Background",
-                type: "color",
+                type: "hsla",
                 key: "--main__background-color",
-                value: "#000000",
-                alpha: 0.0
+                value: [ 0, 0, 0, 0 ]
             }
         ]
     },
@@ -61,57 +62,57 @@ let cssRootDefault =
         values: [
             {
                 name: "Text",
-                type: "color",
+                type: "hsl",
                 key: "--button__text-color",
-                value: "#FFFFFF"
+                value: [ 0, 0, 100 ]
             },
             {
                 name: "Text (Hover)",
-                type: "color",
+                type: "hsl",
                 key: "--button__text-color__hover",
-                value: "#FFFFFF"
+                value: [ 0, 0, 100 ]
             },
             {
                 name: "Text (Active)",
-                type: "color",
+                type: "hsl",
                 key: "--button__text-color__active",
-                value: "#FFFFFF"
+                value: [ 0, 0, 100 ]
             },
             {
                 name: "Background",
-                type: "color",
+                type: "hsl",
                 key: "--button__background-color",
-                value: "#440022"
+                value: [ hue, 100, 15 ]
             },
             {
                 name: "Background (Hover)",
-                type: "color",
+                type: "hsl",
                 key: "--button__background-color__hover",
-                value: "#440022"
+                value: [ hue, 100, 20 ]
             },
             {
                 name: "Background (Active)",
-                type: "color",
+                type: "hsl",
                 key: "--button__background-color__active",
-                value: "#7F154D"
+                value: [ hue, 100, 30 ]
             },
             {
                 name: "Border",
-                type: "color",
+                type: "hsl",
                 key: "--button__border-color",
-                value: "#440022"
+                value: [ hue, 100, 10 ]
             },
             {
                 name: "Border (Hover)",
-                type: "color",
+                type: "hsl",
                 key: "--button__border-color__hover",
-                value: "#FF3399"
+                value: [ hue, 100, 60 ]
             },
             {
                 name: "Border (Active)",
-                type: "color",
+                type: "hsl",
                 key: "--button__border-color__active",
-                value: "#FF3399"
+                value: [ hue, 100, 60 ]
             }
         ]
     },
@@ -120,15 +121,15 @@ let cssRootDefault =
         values: [
             {
                 name: "Background",
-                type: "color",
+                type: "hsl",
                 key: "--menu-item__background-color",
-                value: "#440022"
+                value: [ hue, 100, 15 ]
             },
             {
                 name: "Background (Hover)",
-                type: "color",
+                type: "hsl",
                 key: "--menu-item__background-color__hover",
-                value: "#551133"
+                value: [ hue, 100, 25 ]
             }
         ]
     },
@@ -137,51 +138,51 @@ let cssRootDefault =
         values: [
             {
                 name: "Text",
-                type: "color",
+                type: "hsl",
                 key: "--input__text-color",
-                value: "#FFFFFF"
+                value: [ 0, 0, 100 ]
             },
             {
-                name: "Text (Hover)",
-                type: "color",
+                name: "Text (Placeholder)",
+                type: "hsl",
                 key: "--input__text-color__placeholder",
-                value: "#995577"
+                value: [ hue, 30, 50 ]
             },
             {
                 name: "Background",
-                type: "color",
+                type: "hsl",
                 key: "--input__background-color",
-                value: "#090009"
+                value: [ hue, 100, 5 ]
             },
             {
                 name: "Background (Hover)",
-                type: "color",
+                type: "hsl",
                 key: "--input__background-color__hover",
-                value: "#090009"
+                value: [ hue, 100, 5 ]
             },
             {
                 name: "Background (Focus)",
-                type: "color",
+                type: "hsl",
                 key: "--input__background-color__focus",
-                value: "#090009"
+                value: [ hue, 100, 5 ]
             },
             {
                 name: "Border",
-                type: "color",
+                type: "hsl",
                 key: "--input__border-color",
-                value: "#660033"
+                value: [ hue, 100, 20 ]
             },
             {
                 name: "Border (Hover)",
-                type: "color",
+                type: "hsl",
                 key: "--input__border-color__hover",
-                value: "#FF3399"
+                value: [ hue, 100, 60 ]
             },
             {
                 name: "Border (Focus)",
-                type: "color",
+                type: "hsl",
                 key: "--input__border-color__focus",
-                value: "#FF3399"
+                value: [ hue, 100, 60 ]
             }
         ]
     },
@@ -190,17 +191,15 @@ let cssRootDefault =
         values: [
             {
                 name: "Background",
-                type: "color",
+                type: "hsla",
                 key: "--textarea__background-color",
-                value: "#000000",
-                alpha: 0.25
+                value: [ 0, 0, 0, .25 ]
             },
             {
                 name: "Background (Focus)",
-                type: "color",
+                type: "hsla",
                 key: "--textarea__background-color__focus",
-                value: "#000000",
-                alpha: 0.45
+                value: [ 0, 0, 0, .45 ]
             }
         ]
     },
@@ -209,15 +208,15 @@ let cssRootDefault =
         values: [
             {
                 name: "Background (Hover)",
-                type: "color",
+                type: "hsl",
                 key: "--character__background-color__hover",
-                value: "#330020"
+                value: [ hue, 60, 15 ]
             },
             {
                 name: "Border (Hover)",
-                type: "color",
+                type: "hsl",
                 key: "--character__border-color__hover",
-                value: "#8A0050"
+                value: [ hue, 80, 45 ]
             }
         ]
     },
@@ -226,17 +225,15 @@ let cssRootDefault =
         values: [
             {
                 name: "Background (You)",
-                type: "color",
+                type: "hsla",
                 key: "--message__background-color__you",
-                value: "#000000",
-                alpha: 0.5
+                value: [ 0, 0, 0, .5 ]
             },
             {
                 name: "Background (Bot)",
-                type: "color",
+                type: "hsla",
                 key: "--message__background-color__bot",
-                value: "#000000",
-                alpha: 0
+                value: [ hue, 100, 50, 0 ]
             }
         ]
     },
@@ -245,31 +242,27 @@ let cssRootDefault =
         values: [
             {
                 name: "Text (You)",
-                type: "color",
+                type: "hsla",
                 key: "--message-topic__text-color__you",
-                value: "#DD99BB",
-                alpha: 0.8
+                value: [ hue, 70, 80, .85 ]
             },
             {
                 name: "Background (You)",
-                type: "color",
+                type: "hsla",
                 key: "--message-topic__background-color__you",
-                value: "#666666",
-                alpha: 0.08
+                value: [ hue, 70, 25, .35 ]
             },
             {
                 name: "Text (Bot)",
-                type: "color",
+                type: "hsla",
                 key: "--message-topic__text-color__bot",
-                value: "#F79ABB",
-                alpha: 0.85
+                value: [ hue, 85, 85, .85 ]
             },
             {
                 name: "Background (Bot)",
-                type: "color",
+                type: "hsla",
                 key: "--message-topic__background-color__bot",
-                value: "#2A0D22",
-                alpha: 0.6
+                value: [ hue, 70, 45, .15 ]
             }
         ]
     },
@@ -278,10 +271,9 @@ let cssRootDefault =
         values: [
             {
                 name: "Text",
-                type: "color",
+                type: "hsla",
                 key: "--message-original__text-color",
-                value: "#FF99FF",
-                alpha: 0.4
+                value: [ hue, 100, 80, .4 ]
             }
         ]
     },
@@ -290,10 +282,9 @@ let cssRootDefault =
         values: [
             {
                 name: "Background",
-                type: "color",
+                type: "hsla",
                 key: "--overlay__background-color",
-                value: "#000000",
-                alpha: 0.6
+                value: [ 0, 0, 0, .6 ]
             }
         ]
     },
@@ -302,23 +293,21 @@ let cssRootDefault =
         values: [
             {
                 name: "Background",
-                type: "color",
+                type: "hsl",
                 key: "--dialog__background-color",
-                value: "#12020d"
+                value: [ hue, 80, 5 ]
             },
             {
                 name: "Border",
-                type: "color",
+                type: "hsla",
                 key: "--dialog__border-color",
-                value: "#662244",
-                alpha: 0.6
+                value: [ hue, 50, 30, .6 ]
             },
             {
                 name: "Border (Empty Image)",
-                type: "color",
+                type: "hsla",
                 key: "--dialog__border-color__empty-image",
-                value: "#FFFFFF",
-                alpha: 0.1325
+                value: [ 0, 0, 100, .13 ]
             }
         ]
     }
@@ -410,6 +399,29 @@ Object.defineProperties(EventTarget.prototype,
                 this.appendChild(element)
             
             return element
+        }
+    },
+    createRangeInput:
+    {
+        value: function(min, max, value, onInput)
+        {
+            const $ = this.create(`div`)
+            $.setAttribute(`style`, `display: flex; align-items: center; gap: 0.25rem; `)
+            
+            const $input = $.create(`input`)
+            $input.type = `range`
+            $input.min = min
+            $input.max = max
+            $input.value = value
+            if (onInput)
+                $input.on(`input`, onInput)
+            
+            const $info = $.create(`div`)
+            $info.style.width = `3rem`;
+            $info.innerText = $input.value
+            
+            $input.on(`input`, () => $info.innerText = $input.value)
+            return $
         }
     },
     query:
@@ -1070,7 +1082,7 @@ class App
             })
         })
         
-        this.closeAllDialogs($overlay =>
+        this.closeAllDialogs(true, $overlay =>
         {
             $overlay.onClick($sender =>
             {
@@ -1156,13 +1168,16 @@ class App
         return result
     }
     
-    closeAllDialogs(onProcessOverlay)
+    closeAllDialogs(force, onProcessOverlay)
     {
-        queryAll(`[data-dialog]`).forEach(x =>
+        queryAll(`[data-dialog]`).forEach($ =>
         {
-            x.addClass(`hidden`)
+            if (!force && $.dataset.dialog == `appearance`)
+                return
             
-            const $prev = x.previousElementSibling
+            $.addClass(`hidden`)
+            
+            const $prev = $.previousElementSibling
             if ($prev.hasClass(`overlay`))
             {
                 $prev.addClass(`hidden`)
@@ -1304,12 +1319,24 @@ class App
                 )
                 
                 let _value = value.value
-                if (value.alpha !== undefined)
+                
+                if (value.type == `color`)
+                {   
+                    if (value.alpha !== undefined)
+                    {
+                        let alpha = Math.round(value.alpha * 255).toString(16).toUpperCase()
+                        while (alpha.length < 2)
+                            alpha = `0${alpha}`
+                        _value += alpha
+                    }
+                }
+                else if (value.type == `hsl`)
                 {
-                    let alpha = Math.round(value.alpha * 255).toString(16).toUpperCase()
-                    while (alpha.length < 2)
-                        alpha = `0${alpha}`
-                    _value += alpha
+                    _value = `hsl(${value.value[0]}, ${value.value[1]}%, ${value.value[2]}%)`
+                }
+                else if (value.type == `hsla`)
+                {
+                    _value = `hsla(${value.value[0]}, ${value.value[1]}%, ${value.value[2]}%, ${value.value[3]})`
                 }
                 set(value.key, _value);
             }
@@ -1318,8 +1345,9 @@ class App
         const body = this.cssRoot.find(x => x.category == `Body`)
         const backgroundColor = body.values.find(x => x.key == `--body__background-color`)
         
-        set(`--bottombar__background-color__start`, `${backgroundColor.value}ff`)
-        set(`--bottombar__background-color__end`, `${backgroundColor.value}00`)
+        let v = backgroundColor.value
+        set(`--bottombar__background-color__start`, `hsla(${v[0]}, ${v[1]}%, ${v[2]}%, 1)`)
+        set(`--bottombar__background-color__end`, `hsla(${v[0]}, ${v[1]}%, ${v[2]}%, 0)`)
         
         localStorage.setItem(`appearance`, this.cssRoot.toJson())
     }
@@ -1725,8 +1753,8 @@ class ChatPage extends Page
     
     refreshSendMessageButton()
     {
-        this.$sendMessageButton.children[0].toggleClass(`display-none`, !this.$message.value)
         this.$sendMessageButton.children[1].toggleClass(`display-none`, this.$message.value)
+        this.$sendMessageButton.children[2].toggleClass(`display-none`, !this.$message.value)
     }
     
     async sendMessageAsync()
@@ -2239,6 +2267,11 @@ class AppearanceDialog extends Dialog
         return `appearance`
     }
     
+    cancel()
+    {
+        App.instance.closeAllDialogs(true)
+    }
+    
     onOpenAsync()
     {
         this.$content.clearHtml()
@@ -2255,33 +2288,100 @@ class AppearanceDialog extends Dialog
                 const $field = $content.create(`div`).addClass(`field`)
                 $field.create(`label`).setHtml(value.name)
                 
-                const $input = $field.create(`input`)
-                $input.type = value.type
-                $input.value = value.value
-                $input.on(`input`, () =>
+                if (value.type == `color`)
                 {
-                    value.value = $input.value
-                    App.instance.applyCssRoot()
-                })
-                
-                const $range = $field.create(`input`)
-                $range.type = `range`
-                $range.min = 0
-                $range.max = 255
-                
-                if (value.alpha !== undefined)
-                {
-                    $range.value = Math.round(value.alpha * 255)
-                    $range.on(`input`, () =>
+                    const $input = $field.create(`input`)
+                    $input.type = value.type
+                    $input.value = value.value
+                    $input.on(`input`, () =>
                     {
-                        value.alpha = $range.value / 255.0
+                        value.value = $input.value
                         App.instance.applyCssRoot()
                     })
+                    
+                    if (value.alpha !== undefined)
+                    {
+                        $field.createRangeInput(0, 255, Math.round(value.alpha * 255), $ =>
+                        {
+                            value.alpha = $.value / 255.0
+                            App.instance.applyCssRoot()
+                        })
+                    }
+                    
                     continue
                 }
                 
-                $range.addClass(`hidden`)
-                $range.value = 0
+                if (value.type == `hsl`)
+                {
+                    const $preview = $field.create(`div`)
+                    $preview.setAttribute(`style`, `flex-basis: 4rem; width: 100%; border-radius: 0.5rem; border: 2px solid #fff1; `)
+                    
+                    const apply = () =>
+                    {
+                        $preview.style.backgroundColor = `hsl(${value.value[0]}, ${value.value[1]}%, ${value.value[2]}%)`
+                        App.instance.applyCssRoot()
+                    }
+                    apply()
+                    
+                    $field.createRangeInput(0, 360, value.value[0], $ =>
+                    {
+                        value.value[0] = $.value
+                        apply()
+                    })
+                    
+                    $field.createRangeInput(0, 100, value.value[1], $ =>
+                    {
+                        value.value[1] = $.value
+                        apply()
+                    })
+                    
+                    $field.createRangeInput(0, 100, value.value[2], $ =>
+                    {
+                        value.value[2] = $.value
+                        apply()
+                    })
+                    
+                    continue
+                }
+                
+                if (value.type == `hsla`)
+                {
+                    const $preview = $field.create(`div`)
+                    $preview.setAttribute(`style`, `flex-basis: 4rem; width: 100%; border-radius: 0.5rem; border: 2px solid #fff1; `)
+                    
+                    const apply = () =>
+                    {
+                        $preview.style.backgroundColor = `hsla(${value.value[0]}, ${value.value[1]}%, ${value.value[2]}%, ${value.value[3]})`
+                        App.instance.applyCssRoot()
+                    }
+                    apply()
+                    
+                    $field.createRangeInput(0, 360, value.value[0], $ =>
+                    {
+                        value.value[0] = $.value
+                        apply()
+                    })
+                    
+                    $field.createRangeInput(0, 100, value.value[1], $ =>
+                    {
+                        value.value[1] = $.value
+                        apply()
+                    })
+                    
+                    $field.createRangeInput(0, 100, value.value[2], $ =>
+                    {
+                        value.value[2] = $.value
+                        apply()
+                    })
+                    
+                    $field.createRangeInput(0, 100, value.value[3] * 100, $ =>
+                    {
+                        value.value[3] = $.value / 100.0
+                        apply()
+                    })
+                    
+                    continue
+                }
             }
         }
     }

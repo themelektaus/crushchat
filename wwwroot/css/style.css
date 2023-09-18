@@ -144,14 +144,10 @@ textarea {
     resize: none;
 }
 
-textarea, textarea:hover, textarea:focus {
+textarea, textarea:hover {
     border-radius: .5rem;
     background-color: var(--textarea__background-color);
     border-color: var(--input__border-color);
-}
-
-textarea:focus {
-    background-color: var(--textarea__background-color__focus);
 }
 
 input[type="checkbox"] {
@@ -866,7 +862,7 @@ input[type="range"]:focus {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-    background-color: black;
+    background-color: #ffffff19;
     border-radius: .25rem;
     height: .25rem;
 }
@@ -902,6 +898,10 @@ input[type="range"]:hover::-webkit-slider-thumb {
     scale: 1;
 }
 
+[data-dialog="appearance"] > .content > .section {
+    gap: 0;
+}
+
 [data-dialog="appearance"] > .content > .section > .title {
     font-size: 1.25em;
     border-top: 1.5px dashed #fff2;
@@ -910,7 +910,7 @@ input[type="range"]:hover::-webkit-slider-thumb {
 
 [data-dialog] > .content > .section > .grid-content {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     padding: 1rem;
 }
@@ -918,14 +918,12 @@ input[type="range"]:hover::-webkit-slider-thumb {
 [data-dialog] > .content > .section > .grid-content > .field {
     display: flex;
     flex-direction: column;
-    height: 7rem;
     gap: .25rem;
     min-width: 0;
 }
 
 [data-dialog] > .content > .section > .grid-content > .field > label {
     width: unset;
-    text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -934,6 +932,9 @@ input[type="range"]:hover::-webkit-slider-thumb {
 
 [data-dialog] > .content > .section > .grid-content > .field > input[type="color"] {
     width: 100%;
+    min-height: 4rem;
+    max-height: 4rem;
+    height: 4rem;
 }
 
 .flex-1 {
@@ -951,12 +952,6 @@ input[type="range"]:hover::-webkit-slider-thumb {
 .hidden {
     opacity: 0;
     pointer-events: none;
-}
-
-@media screen and (max-width: 1800px) {
-    [data-dialog] > .content > .section > .grid-content {
-        grid-template-columns: repeat(2, 1fr);
-    }
 }
 
 @media screen and (max-width: 700px) {
