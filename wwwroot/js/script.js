@@ -44,6 +44,12 @@ let cssRootDefault =
                 type: "hsl",
                 key: "--body__background-color",
                 value: [ hue, 50 * sat, 10 ]
+            },
+            {
+                name: "Tooltip (Background)",
+                type: "hsla",
+                key: "--tooltip__background-color",
+                value: [ 0, 0, 0, 1 ]
             }
         ]
     },
@@ -372,6 +378,13 @@ Object.defineProperties(EventTarget.prototype,
         get: () =>
         {
             return query(`#main > .loader`)
+        }
+    },
+    $tooltip:
+    {
+        get: () =>
+        {
+            return query(`#tooltip`)
         }
     },
     isMobile:
@@ -1102,7 +1115,24 @@ class App
             
             $titles.query(`.title`).click()
         })
-            
+        
+        on(`mousemove`, ($, e) =>
+        {
+            const text = $.dataset.tooltip
+            if (text)
+            {
+                const rect = $.getBoundingClientRect()
+                $tooltip.setHtml(text)
+                $tooltip.addClass(`visible`)
+                $tooltip.style.left = `${rect.left + rect.width / 2}px`
+                $tooltip.style.top = `${rect.top}px`
+            }
+            else
+            {
+                $tooltip.removeClass(`visible`)
+            }
+        })
+        
         on(`mousedown`, ($, e) =>
         {
             if (!$.hasClass(`ripple`))
@@ -1133,6 +1163,8 @@ class App
         {
             x.onClick(async $sender =>
             {
+                $tooltip.removeClass(`visible`)
+                
                 const _action = $sender.dataset.action
                 
                 if (this.closeAllMenus())
@@ -1155,7 +1187,9 @@ class App
         })
         
         this.closeAllMenus($overlay =>
-        {    
+        {
+            $tooltip.removeClass(`visible`)
+            
             $overlay.onClick($sender =>
             {
                 if ($sender != $overlay)
@@ -1170,6 +1204,8 @@ class App
         
         this.closeAllDialogs(true, $overlay =>
         {
+            $tooltip.removeClass(`visible`)
+            
             $overlay.onClick($sender =>
             {
                 if ($sender != $overlay)
@@ -2216,7 +2252,7 @@ class MessageDialog extends Dialog
         
         this.transferTo(this.$content)
         
-        this.$.query(`[data-bind="imagePrompt"]`).placeholder = userData.character.imagePrompt || "Enter image prompt"
+        this.$.query(`[data-bind="imagePrompt"]`).placeholder = userData.character.imagePrompt || "Enter image prompt(s)"
         
         const isYou = userData.message.role == `You`
         

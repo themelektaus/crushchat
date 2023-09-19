@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=2023.09.19-2025">
-        <script src="js/script.js?v=2023.09.19-2025" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.19-2320">
+        <script src="js/script.js?v=2023.09.19-2320" defer></script>
     </head>
     
     <body class="display-none">
@@ -19,10 +19,22 @@
             <div data-page="home">
                 <div class="icon"></div>
                 <h2></h2>
-                <button class="ripple" data-action="gotoPageAsync" data-target="characters">Characters</button>
-                <button class="ripple" data-action="gotoPageAsync" data-target="imageGenerator">Image Generator</button>
-                <button class="ripple" data-action="openDialogAsync" data-target="settings">Settings</button>
-                <button class="ripple" data-action="openDialogAsync" data-target="appearance">Appearance</button>
+                <button class="ripple" data-action="gotoPageAsync" data-target="characters"
+                        data-tooltip="Here you can create, edit and chat with custom characters">
+                    Characters
+                </button>
+                <button class="ripple" data-action="gotoPageAsync" data-target="imageGenerator"
+                        data-tooltip="Here you can generate your own images using the API of crushcat.app">
+                    Image Generator
+                </button>
+                <button class="ripple" data-action="openDialogAsync" data-target="settings"
+                        data-tooltip="Set your tokens here. You can find these in the cookies of crushchat.app">
+                    Settings
+                </button>
+                <button class="ripple" data-action="openDialogAsync" data-target="appearance"
+                        data-tooltip="Change the appearance of the whole webpage">
+                    Appearance
+                </button>
             </div>
             
             
@@ -129,7 +141,7 @@
                         <input data-bind="isRealistic" type="checkbox">
                         <div>Realistic</div>
                     </div>
-                    <textarea data-bind="prompt"></textarea>
+                    <textarea data-bind="prompt" placeholder="Enter image prompt(s)"></textarea>
                 </div>
                 <div class="bottombar">
                     <div class="flex-1"></div>
@@ -165,19 +177,19 @@
                         <div class="content">
                             <div class="field">
                                 <label>Name</label>
-                                <input data-bind="name" type="text">
+                                <input data-bind="name" type="text" placeholder="Enter name for your character">
                             </div>
                             <div class="field">
                                 <label>Description</label>
-                                <textarea data-bind="description"></textarea>
+                                <textarea data-bind="description" placeholder="Leave a short description"></textarea>
                             </div>
                             <div class="field">
                                 <label>Image prompt(s)</label>
-                                <textarea data-bind="imagePrompt"></textarea>
+                                <textarea data-bind="imagePrompt" placeholder="Descripe your character with some phrases"></textarea>
                             </div>
                             <div class="field">
                                 <label>Persona</label>
-                                <textarea data-bind="persona" style="height: 15rem; "></textarea>
+                                <textarea data-bind="persona" style="height: 15rem; " placeholder="Descript the personaly and story of your character"></textarea>
                             </div>
                             <!--
                                 <div class="field">
@@ -413,6 +425,8 @@
                 <button class="ripple" data-action="dialogs.appearanceReset.cancel">Cancel</button>
             </div>
         </div>
+        
+        <div id="tooltip"></div>
         
     </body>
     
