@@ -1404,7 +1404,7 @@ class App
             ? `My CrushChat Client`
             : `My Chatbot Client`
         
-        $head.title = title
+        document.title = title
         query(`[data-page="home"] > h2`).setHtml(title)
         
         const set = (key, value) => document.documentElement.style.setProperty(key, value)
