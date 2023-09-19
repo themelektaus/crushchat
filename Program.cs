@@ -1,7 +1,11 @@
 using CrushChatApi;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
+
+
+
+const bool NSFW = true;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,19 +34,36 @@ app.MapGet("/api/me", async (HttpRequest request) =>
 app.MapGet("/api/characters", async (HttpRequest request) =>
 {
     using var client = new CrushChatClient(request);
+
     var characters = await client.GetCharactersAsync();
 
-    var homeCharacters = new HomeCharacters();
+    var result = new List<Character>();
 
-    foreach (var character in characters)
-        if (character.isPrivate)
-            homeCharacters.@private.Add(character);
-        else if (character.recent)
-            homeCharacters.recent.Add(character);
-        else
-            homeCharacters.@public.Add(character);
+    if (request.GetQueryBoolean("all"))
+    {
+        result.AddRange(characters.Where(x => x.recent));
+        result.AddRange(characters.Where(x => x.isPrivate));
+        result.AddRange(characters);
+    }
+    else
+    {
+        if (request.GetQueryBoolean("recent"))
+            result.AddRange(characters.Where(x => x.recent));
 
-    return homeCharacters;
+        if (request.GetQueryBoolean("private"))
+            result.AddRange(characters.Where(x => x.isPrivate));
+
+        if (request.GetQueryBoolean("public"))
+            result.AddRange(characters.Where(x => !x.isPrivate && !x.recent));
+    }
+
+    var page = request.GetQueryInteger("page", 1);
+    var limit = request.GetQueryInteger("limit", 10);
+
+    if (limit == 0)
+        return result.DistinctBy(x => x.id);
+
+    return result.DistinctBy(x => x.id).Skip((page - 1) * limit).Take(limit);
 });
 
 #endregion
@@ -346,13 +367,14 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
 
     if (request.Headers.TryGetValue("X-Prompt", out var _prompt))
     {
-        paidPrompt = _prompt.ToString().Replace("\"", "");
-        prompt = paidPrompt;
+        prompt = _prompt.ToString().Replace("\"", "");
+        paidPrompt = prompt + (NSFW ? "" : ",sfw");
+        prompt += (NSFW ? "" : ", sfw");
     }
     else
     {
-        paidPrompt = $"\"{message.content.Replace("\"", "")}\",detailed,masterpiece";
-        prompt = $"\"{message.content.Replace("\"", "").Replace(',', '-')}\", nsfw, {character.imagePrompt}";
+        paidPrompt = $"\"{message.content.Replace("\"", "")}\",{(NSFW ? "" : "sfw,")}detailed,masterpiece";
+        prompt = $"\"{message.content.Replace("\"", "").Replace(',', '-')}\", {(NSFW ? "" : "sfw, ")}{character.imagePrompt}";
     }
 
     var imageRequest = new ImageRequest
@@ -410,6 +432,9 @@ app.MapGet("/api/generate-image", async (HttpRequest request) =>
         return Results.BadRequest();
 
     var prompt = _prompt.ToString().Replace("\"", "");
+
+    if (!NSFW && !prompt.Contains("sfw"))
+        prompt = "sfw, " + prompt;
 
     using var client = new CrushChatClient(request);
 
@@ -516,6 +541,10 @@ app.MapGet("/api/characters/{characterId}/messages/delete-image/{index}", async 
 app.MapPost("/api/characters/create", async (HttpRequest request, [FromBody] Character.Creation.New character) =>
 {
     using var client = new CrushChatClient(request);
+
+    if (!NSFW && !character.imagePrompt.Contains("sfw"))
+        character.imagePrompt += (string.IsNullOrEmpty(character.imagePrompt) ? "" : ", ") + "sfw";
+
     character.persona = $"{character.name}'s Persona: {character.persona.Trim()}\n";
     return await client.CreateCharacterAsync(character);
 });
@@ -529,6 +558,10 @@ app.MapPost("/api/characters/create", async (HttpRequest request, [FromBody] Cha
 app.MapPost("/api/characters/update", async (HttpRequest request, [FromBody] Character.Creation.Edit.WithDetails character) =>
 {
     using var client = new CrushChatClient(request);
+    
+    if (!NSFW && !character.imagePrompt.Contains("sfw"))
+        character.imagePrompt += (string.IsNullOrEmpty(character.imagePrompt) ? "" : ", ") + "sfw";
+
     character.persona = $"{character.name}'s Persona: {character.persona.Trim()}\n";
     return await client.EditCharacterAsync(character);
 });

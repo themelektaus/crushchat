@@ -402,6 +402,11 @@ input[type="checkbox"] {
     margin-top: .75rem;
 }
 
+[data-page="characters"] .characters > .section > .content > .character > .badges {
+    display: flex;
+    gap: .5rem;
+}
+
 [data-page="chat"] .persona {
     position: relative;
     display: flex;
@@ -575,6 +580,7 @@ input[type="checkbox"] {
     border-radius: .5rem;
 }
 
+[data-page="characters"] > .loader,
 [data-page="chat"] > .loader {
     width: 50px;
     background-image: url(../res/loading-small.svg);
@@ -789,6 +795,15 @@ input[type="checkbox"] {
     flex: 1;
 }
 
+.field > label + input[type="checkbox"] {
+    flex: unset;
+    margin: .5rem .5rem 0 0;
+}
+
+.field > label + input[type="checkbox"] + div {
+    margin: .5rem 0 0 0;
+}
+
 .field > input,
 .field > textarea,
 .field > select {
@@ -884,6 +899,24 @@ input[type="range"] {
         hsl(324, 100%, 50%) 90%,
         hsl(360, 100%, 50%) 100%
     );
+}
+
+.badge {
+    background-color: var(--badge__background-color);
+    padding: .25rem .75rem;
+    border-radius: 1000px;
+}
+
+.badge.recent {
+    background-color: var(--badge__background-color__recent);
+}
+
+.badge.private {
+    background-color: var(--badge__background-color__private);
+}
+
+.badge.public {
+    background-color: var(--badge__background-color__public);
 }
 
 input[type="range"]:hover {

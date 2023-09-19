@@ -67,6 +67,8 @@ public class Character
             public string content { get; set; }
         }
         public List<Memory> memories { get; set; }
+
+        public bool hidden { get; set; }
     }
     
     public Details details { get; set; }

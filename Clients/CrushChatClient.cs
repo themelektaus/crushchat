@@ -54,10 +54,18 @@ public class CrushChatClient : IDisposable
 
         var folder = new DirectoryInfo(Path.Combine("UserData", userId, "Characters"));
 
-        var cachedCharacters = folder.Exists ? folder
-            .EnumerateFiles()
-            .Select(x => File.ReadAllText(x.FullName).FromJson<Character>())
-            .ToList() : new();
+        var cachedCharactersEnumerable = folder.Exists
+            ? folder.EnumerateFiles()
+                .Select(x => File.ReadAllText(x.FullName).FromJson<Character>())
+            : Enumerable.Empty<Character>();
+
+        var search = request.GetQueryString("search");
+        if (!string.IsNullOrEmpty(search))
+        {
+            cachedCharactersEnumerable = cachedCharactersEnumerable
+                .Where(x => x.name.ToLower().Contains(search.ToLower()));
+        }
+        var cachedCharacters = cachedCharactersEnumerable.ToList();
 
         if (request.GetQueryBoolean("cache", true))
         {
@@ -68,26 +76,26 @@ public class CrushChatClient : IDisposable
             var path = "/api/characters";
             var queryString = $"&search=&limit=25";
 
-            var privateCharacters = await GetAsync<List<Character>>($"{path}?page=1{queryString}&sortBy=Top&isPrivate=true");
-            privateCharacters.ForEach(x => x.isPrivate = true);
-
             var recentCharacters = (await GetAsync<List<Character>>($"{path}/recent?page=1{queryString}&sortBy=Top"));
             recentCharacters.ForEach(x => x.recent = true);
+
+            var privateCharacters = await GetAsync<List<Character>>($"{path}?page=1{queryString}&sortBy=Top&isPrivate=true");
+            privateCharacters.ForEach(x => x.isPrivate = true);
 
             var publicCharacters = new List<Character>();
             publicCharacters.AddRange(await GetAsync<List<Character>>($"{path}?page=1{queryString}&sortBy=Hot&tags="));
             publicCharacters.ForEach(x => x.hot = true);
 
             characters = Enumerable.Empty<Character>()
-                .Concat(privateCharacters)
                 .Concat(recentCharacters)
+                .Concat(privateCharacters)
                 .Concat(publicCharacters)
                 .Concat(cachedCharacters)
-                .DistinctBy(x => x.id)
-                .OrderByDescending(x => x.isPrivate)
-                .ThenByDescending(x => x.recent)
+                .OrderByDescending(x => x.recent)
+                .ThenByDescending(x => x.isPrivate)
                 .ThenByDescending(x => x.hot)
                 .ThenByDescending(x => x.upvote)
+                .DistinctBy(x => x.id)
                 .ToList();
 
             folder.Create();
@@ -97,6 +105,7 @@ public class CrushChatClient : IDisposable
         }
 
         characters.ForEach(x => x.Prepare(userId));
+        //characters.RemoveAll(x => x.details.hidden);
 
         if (request.NeedsTranslation(out var language))
             foreach (var character in characters)
@@ -392,10 +401,15 @@ public class CrushChatClient : IDisposable
 
         var (sucess, response) = await SendAsync(message);
 
-        if (sucess)
+        foreach (var path in new[]
         {
-            File.Delete(Path.Combine("UserData", "Characters", $"{characterId}.json"));
-            File.Delete(Path.Combine("UserData", "Messages", $"{characterId}.json"));
+            Path.Combine("UserData", userId, "CharacterDetails", $"{characterId}.json"),
+            Path.Combine("UserData", userId, "Characters", $"{characterId}.json"),
+            Path.Combine("UserData", userId, "Messages", $"{characterId}.json")
+        })
+        {
+            if (File.Exists(path))
+                File.Delete(path);
         }
 
         return response;

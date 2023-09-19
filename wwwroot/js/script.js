@@ -7,7 +7,7 @@
     const items = {
         language: "EN",
         autoGenerate: "true",
-        showOriginalMessages: "false",
+        showOriginalMessages: "true",
         blurImages: "false",
         hideImages: "false",
         csrfToken: "",
@@ -217,6 +217,30 @@ let cssRootDefault =
                 type: "hsl",
                 key: "--character__border-color__hover",
                 value: [ hue, 80, 45 ]
+            },
+            {
+                name: "Badge (Background)",
+                type: "hsla",
+                key: "--badge__background-color",
+                value: [ hue, 50, 50, .5 ]
+            },
+            {
+                name: "Badge (Recent, Background)",
+                type: "hsla",
+                key: "--badge__background-color__recent",
+                value: [ hue, 40, 30, .5 ]
+            },
+            {
+                name: "Badge (Private, Background)",
+                type: "hsla",
+                key: "--badge__background-color__private",
+                value: [ hue, 50, 50, .5 ]
+            },
+            {
+                name: "Badge (Public, Background)",
+                type: "hsla",
+                key: "--badge__background-color__public",
+                value: [ hue, 50, 50, .5 ]
             }
         ]
     },
@@ -908,6 +932,51 @@ Object.defineProperties(Object.prototype,
 
 
 
+class Task
+{
+    current = null
+    next = null
+    promise = null
+    
+    run(task)
+    {
+        if (this.current)
+        {
+            this.next = task
+            return
+        }
+        
+        this.current = task
+        
+        if (!this.current)
+            return
+        
+        this.promise = new Promise(async resolve =>
+        {
+            await this.current()
+            this.current = null
+            
+            if (this.next)
+            {
+                const next = this.next
+                this.next = null
+                this.run(next)
+                return
+            }
+            
+            resolve()
+        })
+    }
+    
+    async stopAsync()
+    {
+        this.run(null)
+        await this.promise
+    }
+}
+
+
+
 class App
 {
     static instance
@@ -1123,27 +1192,7 @@ class App
             
             this.startLoading()
             
-            const characters = await App.instance.fetchCharactersAsync()
-            
-            for (const key in characters)
-            {
-                const characterGroup = characters[key]
-                
-                for (const character of characterGroup)
-                {
-                    if (!character)
-                        continue
-                    
-                    if (character.id != route.id)
-                        continue
-                    
-                    this.pages.chat.character = character
-                    break
-                }
-                
-                if (this.pages.chat.character)
-                    break
-            }
+            this.pages.chat.character = await fetchAsync(`api/characters/${route.id}`).then(x => x.json())
             
             if (!this.pages.chat.character)
             {
@@ -1405,16 +1454,26 @@ class App
         )
     }
     
-    async fetchCharactersAsync()
+    async fetchCharactersAsync(options)
     {
         let error = false
         
-        const cache = !(this.preventCache === true)
-        const characters = await fetchAsync(`api/characters?cache=${cache}`)
+        options ??= { }
+        
+        const query = {
+            cache: !(options.cache === false),
+            all: options.all || false,
+            private: options.private || false,
+            recent: options.recent || false,
+            public: options.public || false,
+            page: options.page || 1,
+            limit: options.limit ?? 10,
+            search: options.search ?? ``
+        }
+        
+        const characters = await fetchAsync(`api/characters${query.toQueryString()}`)
             .then(x => x.json())
             .catch(() => error = true)
-        
-        delete this.preventCache
         
         if (error)
         {
@@ -1498,45 +1557,49 @@ class CharactersPage extends Page
         return `characters`
     }
     
+    #onScrollCallback
+    #searchTask
+    
     constructor()
     {
         super()
         
+        this.$loader = this.$.query(`.loader`).addClass(`hidden`)
+        
         this.$characters = this.$.query(`.characters`)
+        this.$section = this.$characters.query(`.section`)
+        this.$sectionContent = this.$section.query(`.content`)
         
-        this.$sectionTemplate = this.$characters.query(`.section`)
-        this.$characterTemplate = this.$sectionTemplate.query(`.content > div`)
-        
-        this.$sectionTemplate.remove()
+        this.$characterTemplate = this.$sectionContent.query(`.character`)
         this.$characterTemplate.remove()
         
+        this.#searchTask = new Task
+        
         this.$search = this.$bottombar.query(`[data-bind="search"]`)
-        this.$search.on(`input`, () => this.#refreshSearchResults())
+        this.$search.on(`input`, () => this.#searchTask.run(async () =>
+        {
+            this.#reset()
+            this.$loader.removeClass(`hidden`)
+            await this.loadNextCharactersAsync()
+            this.$loader.addClass(`hidden`)
+        }))
+    }
+    
+    #reset()
+    {
+        this.page = 1
+        this.$characters.queryAll(`.thumbnail`).forEach($ => App.instance.imageLoader.unobserve($))
+        this.$sectionContent.clearHtml()
     }
     
     async onLoadAsync()
     {
-        this.$characters.queryAll(`.thumbnail`).forEach($ => App.instance.imageLoader.unobserve($))
-        this.$characters.clearHtml()
+        this.#reset()
         
-        const characters = await App.instance.fetchCharactersAsync()
+        await this.loadNextCharactersAsync()
         
-        this.#addCharacter(characters, `recent`, `Recent Characters`)
-        this.#addCharacter(characters, `private`, `Private Characters`)
-        this.#addCharacter(characters, `public`, `Public Characters`)
-        
-        this.#refreshSearchResults(true)
-    }
-    
-    async refreshCharactersAsync()
-    {
-        App.instance.startLoading()
-        App.instance.preventCache = true
-        await this.onLoadAsync()
-        App.instance.stopLoading()
-        
-        if (!isMobile())
-            this.$search.focus()
+        this.#onScrollCallback = this.#onScroll.bind(this)
+        document.addEventListener(`scroll`, this.#onScrollCallback)
     }
     
     async onPostLoadAsync()
@@ -1547,17 +1610,46 @@ class CharactersPage extends Page
             this.$search.focus()
     }
     
-    #addCharacter(characters, key, title)
+    async onUnloadAsync()
     {
-        if (!characters[key]?.length)
+        await this.#searchTask.stopAsync()
+        
+        this.$loader.addClass(`hidden`)
+        document.removeEventListener(`scroll`, this.#onScrollCallback)
+    }
+    
+    #onScroll(e)
+    {
+        if (e.target != document)
             return
         
-        const $section = this.$sectionTemplate.clone().removeClass(`display-none`)
-        $section.query(`.title`).setHtml(title)
+        const $ = document.documentElement
+        const delta = $.offsetHeight - $.scrollTop - $.clientHeight
         
-        const $content = $section.query(`.content`)
+        if (delta > 2)
+            return
         
-        for (const character of characters[key])
+        this.#searchTask.run(async () =>
+        {
+            document.removeEventListener(`scroll`, this.#onScrollCallback)
+            this.$loader.removeClass(`hidden`)
+            
+            await this.loadNextCharactersAsync()
+            
+            this.$loader.addClass(`hidden`)
+            document.addEventListener(`scroll`, this.#onScrollCallback)
+        })
+    }
+    
+    async loadNextCharactersAsync()
+    {
+        const search = this.$search.value.toLowerCase().trim()
+        
+        const options = { all: true, page: this.page++, search: search }
+        
+        const characters = await App.instance.fetchCharactersAsync(options)
+        
+        for (const character of characters)
         {
             const $character = this.$characterTemplate.clone().onClick(async () =>
             {
@@ -1574,35 +1666,23 @@ class CharactersPage extends Page
             
             $character.query(`.name`).setHtml(character.name)
             $character.query(`.description`).setHtml(character.descriptionTranslated || character.description)
+            $character.query(`.recent`).toggleClass(`display-none`, !character.recent)
+            $character.query(`.private`).toggleClass(`display-none`, !character.isPrivate)
+            $character.query(`.public`).toggleClass(`display-none`, character.isPrivate)
             
-            $content.add($character)
+            this.$sectionContent.add($character)
         }
-        
-        this.$characters.add($section)
     }
     
-    #refreshSearchResults(immediately)
+    async refreshCharactersAsync()
     {
-        const callback = () =>
-        {
-            this.$characters.queryAll(`.character`).forEach($ =>
-            {
-                const search = this.$search.value.toLowerCase().trim()
-                const name = $.query(`.name`).innerText.toLowerCase()
-                const description = $.query(`.description`).innerText.toLowerCase()
-                const hidden = name.indexOf(search) == -1 && description.indexOf(search) == -1
-                $.toggleClass(`display-none`, hidden)
-                $.toggleClass(`important`, hidden)
-            })
-        }
+        App.instance.startLoading()
+        await App.instance.fetchCharactersAsync({ all: true, cache: false, limit: 0 })
+        await this.onLoadAsync()
+        App.instance.stopLoading()
         
-        if (immediately)
-        {
-            callback()
-            return
-        }
-        
-        startTimeout(`search`, callback, 500)
+        if (!isMobile())
+            this.$search.focus()
     }
 }
 
@@ -1929,7 +2009,7 @@ class ImageGeneratorPage extends Page
         
         let error = false
         const query = { delete: true }
-        await fetchAsync(`api/images/${this.imageId}${query.toQueryString()}`)
+        await fetchAsync(`api/images/${this.userId}/${this.imageId}${query.toQueryString()}`)
             .catch(() => error = true)
         
         if (error)
@@ -2012,6 +2092,7 @@ class CharacterDialog extends Dialog
         this.data.persona = ``
         this.data.thumbnail = ``
         this.data.memories = []
+        this.data.hidden = false
         
         this.$.query(`[data-bind="thumbnail"]`).placeholder = ``
         
@@ -2041,6 +2122,7 @@ class CharacterDialog extends Dialog
         this.data.persona = character.personaFiltered
         this.data.thumbnail = character.details?.thumbnail || ``
         this.data.memories = character.details.memories || []
+        this.data.hidden = character.details.hidden || false
         
         this.$.query(`[data-bind="thumbnail"]`).placeholder = character.thumbnail
         
@@ -2075,7 +2157,8 @@ class CharacterDialog extends Dialog
             isPrivate: true,
             details: {
                 thumbnail: this.data.thumbnail,
-                memories: this.data.memories
+                memories: this.data.memories,
+                hidden: this.data.hidden
             }
         }
         

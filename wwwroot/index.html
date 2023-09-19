@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title>My CrushChat Client</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=2023.09.18-2105">
-        <script src="js/script.js?v=2023.09.18-2105" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.19-1935">
+        <script src="js/script.js?v=2023.09.19-1935" defer></script>
     </head>
     
     <body class="display-none">
@@ -31,16 +31,22 @@
             <div data-page="characters">
                 <div class="characters">
                     <div class="section">
-                        <div class="title"></div>
+                        <div class="title">Characters</div>
                         <div class="content">
                             <div class="character clickable">
                                 <div class="thumbnail nsfw-content"></div>
                                 <div class="name"></div>
                                 <div class="description"></div>
+                                <div class="badges">
+                                    <div class="badge recent">Recent</div>
+                                    <div class="badge private">Private</div>
+                                    <div class="badge public">Public</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="loader" style="display: block; padding: 3rem 0; "></div>
                 <div class="bottombar">
                     <input data-bind="search" class="flex-1" placeholder="Search">
                     <button data-action="pages.characters.openMenu" class="menu-button"></button>
@@ -173,6 +179,13 @@
                                 <label>Persona</label>
                                 <textarea data-bind="persona" style="height: 15rem; "></textarea>
                             </div>
+                            <!--
+                                <div class="field">
+                                    <label>Visibility</label>
+                                    <input data-bind="hidden" type="checkbox">
+                                    <div>Hidden</div>
+                                </div>
+                            -->
                         </div>
                     </div>
                     <div class="tab">
