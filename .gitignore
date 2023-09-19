@@ -9,3 +9,4 @@
 /obj/
 /CrushChatApi.csproj.user
 *.pubxml.user
+/.token

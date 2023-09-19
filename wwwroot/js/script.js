@@ -14,7 +14,6 @@
         sessionToken: "",
         translationClient: "",
         deeplAuthKey: "",
-        deeplBlockSize: 10,
         libreTranslateUrl: ""
     }
     
