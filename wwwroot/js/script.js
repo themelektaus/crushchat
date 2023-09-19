@@ -26,6 +26,7 @@
 
 
 const hue = 330
+const sat = 0.9
 
 let cssRootDefault =
 [
@@ -42,7 +43,7 @@ let cssRootDefault =
                 name: "Background",
                 type: "hsl",
                 key: "--body__background-color",
-                value: [ hue, 50, 10 ]
+                value: [ hue, 50 * sat, 10 ]
             }
         ]
     },
@@ -82,37 +83,37 @@ let cssRootDefault =
                 name: "Background",
                 type: "hsl",
                 key: "--button__background-color",
-                value: [ hue, 100, 15 ]
+                value: [ hue, 100 * sat, 15 ]
             },
             {
                 name: "Background (Hover)",
                 type: "hsl",
                 key: "--button__background-color__hover",
-                value: [ hue, 100, 20 ]
+                value: [ hue, 100 * sat, 20 ]
             },
             {
                 name: "Background (Active)",
                 type: "hsl",
                 key: "--button__background-color__active",
-                value: [ hue, 100, 30 ]
+                value: [ hue, 100 * sat, 30 ]
             },
             {
                 name: "Border",
                 type: "hsl",
                 key: "--button__border-color",
-                value: [ hue, 100, 15 ]
+                value: [ hue, 100 * sat, 15 ]
             },
             {
                 name: "Border (Hover)",
                 type: "hsl",
                 key: "--button__border-color__hover",
-                value: [ hue, 100, 60 ]
+                value: [ hue, 100 * sat, 60 ]
             },
             {
                 name: "Border (Active)",
                 type: "hsl",
                 key: "--button__border-color__active",
-                value: [ hue, 100, 60 ]
+                value: [ hue, 100 * sat, 60 ]
             }
         ]
     },
@@ -123,13 +124,13 @@ let cssRootDefault =
                 name: "Background",
                 type: "hsl",
                 key: "--menu-item__background-color",
-                value: [ hue, 100, 15 ]
+                value: [ hue, 100 * sat, 15 ]
             },
             {
                 name: "Background (Hover)",
                 type: "hsl",
                 key: "--menu-item__background-color__hover",
-                value: [ hue, 100, 25 ]
+                value: [ hue, 100 * sat, 25 ]
             }
         ]
     },
@@ -146,43 +147,43 @@ let cssRootDefault =
                 name: "Text (Placeholder)",
                 type: "hsl",
                 key: "--input__text-color__placeholder",
-                value: [ hue, 30, 50 ]
+                value: [ hue, 30 * sat, 50 ]
             },
             {
                 name: "Background",
                 type: "hsl",
                 key: "--input__background-color",
-                value: [ hue, 100, 5 ]
+                value: [ hue, 100 * sat, 5 ]
             },
             {
                 name: "Background (Hover)",
                 type: "hsl",
                 key: "--input__background-color__hover",
-                value: [ hue, 100, 5 ]
+                value: [ hue, 100 * sat, 5 ]
             },
             {
                 name: "Background (Focus)",
                 type: "hsl",
                 key: "--input__background-color__focus",
-                value: [ hue, 100, 5 ]
+                value: [ hue, 100 * sat, 5 ]
             },
             {
                 name: "Border",
                 type: "hsl",
                 key: "--input__border-color",
-                value: [ hue, 100, 20 ]
+                value: [ hue, 100 * sat, 20 ]
             },
             {
                 name: "Border (Hover)",
                 type: "hsl",
                 key: "--input__border-color__hover",
-                value: [ hue, 100, 60 ]
+                value: [ hue, 100 * sat, 60 ]
             },
             {
                 name: "Border (Focus)",
                 type: "hsl",
                 key: "--input__border-color__focus",
-                value: [ hue, 100, 60 ]
+                value: [ hue, 100 * sat, 60 ]
             }
         ]
     },
@@ -210,37 +211,37 @@ let cssRootDefault =
                 name: "Background (Hover)",
                 type: "hsl",
                 key: "--character__background-color__hover",
-                value: [ hue, 60, 15 ]
+                value: [ hue, 60 * sat, 15 ]
             },
             {
                 name: "Border (Hover)",
                 type: "hsl",
                 key: "--character__border-color__hover",
-                value: [ hue, 80, 45 ]
+                value: [ hue, 80 * sat, 45 ]
             },
             {
                 name: "Badge (Background)",
                 type: "hsla",
                 key: "--badge__background-color",
-                value: [ hue, 50, 50, .5 ]
+                value: [ hue, 50 * sat, 50, .5 ]
             },
             {
                 name: "Badge (Recent, Background)",
                 type: "hsla",
                 key: "--badge__background-color__recent",
-                value: [ hue, 40, 30, .5 ]
+                value: [ hue, 40 * sat, 30, .5 ]
             },
             {
                 name: "Badge (Private, Background)",
                 type: "hsla",
                 key: "--badge__background-color__private",
-                value: [ hue, 50, 50, .5 ]
+                value: [ hue, 50 * sat, 50, .5 ]
             },
             {
                 name: "Badge (Public, Background)",
                 type: "hsla",
                 key: "--badge__background-color__public",
-                value: [ hue, 50, 50, .5 ]
+                value: [ hue, 50 * sat, 50, .5 ]
             }
         ]
     },
@@ -257,7 +258,7 @@ let cssRootDefault =
                 name: "Background (Bot)",
                 type: "hsla",
                 key: "--message__background-color__bot",
-                value: [ hue, 100, 50, 0 ]
+                value: [ hue, 100 * sat, 50, 0 ]
             }
         ]
     },
@@ -268,25 +269,25 @@ let cssRootDefault =
                 name: "Text (You)",
                 type: "hsla",
                 key: "--message-topic__text-color__you",
-                value: [ hue, 70, 80, .85 ]
+                value: [ hue, 70 * sat, 80, .85 ]
             },
             {
                 name: "Background (You)",
                 type: "hsla",
                 key: "--message-topic__background-color__you",
-                value: [ hue, 70, 25, .35 ]
+                value: [ hue, 70 * sat, 25, .35 ]
             },
             {
                 name: "Text (Bot)",
                 type: "hsla",
                 key: "--message-topic__text-color__bot",
-                value: [ hue, 85, 85, .85 ]
+                value: [ hue, 85 * sat, 85, .85 ]
             },
             {
                 name: "Background (Bot)",
                 type: "hsla",
                 key: "--message-topic__background-color__bot",
-                value: [ hue, 70, 45, .15 ]
+                value: [ hue, 70 * sat, 45, .15 ]
             }
         ]
     },
@@ -297,7 +298,7 @@ let cssRootDefault =
                 name: "Text",
                 type: "hsla",
                 key: "--message-original__text-color",
-                value: [ hue, 100, 80, .4 ]
+                value: [ hue, 100 * sat, 80, .4 ]
             }
         ]
     },
@@ -319,13 +320,13 @@ let cssRootDefault =
                 name: "Background",
                 type: "hsl",
                 key: "--dialog__background-color",
-                value: [ hue, 80, 5 ]
+                value: [ hue, 80 * sat, 5 ]
             },
             {
                 name: "Border",
                 type: "hsla",
                 key: "--dialog__border-color",
-                value: [ hue, 100, 10, 1 ]
+                value: [ hue, 100 * sat, 10, 1 ]
             },
             {
                 name: "Border (Empty Image)",
