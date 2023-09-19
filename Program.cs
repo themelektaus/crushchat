@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 
 
-const bool NSFW = true;
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
@@ -367,14 +364,15 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
 
     if (request.Headers.TryGetValue("X-Prompt", out var _prompt))
     {
+        
         prompt = _prompt.ToString().Replace("\"", "");
-        paidPrompt = prompt + (NSFW ? "" : ",sfw");
-        prompt += (NSFW ? "" : ", sfw");
+        paidPrompt = prompt + (client.nsfw ? "" : ",sfw");
+        prompt += (client.nsfw ? "" : ", sfw");
     }
     else
     {
-        paidPrompt = $"\"{message.content.Replace("\"", "")}\",{(NSFW ? "" : "sfw,")}detailed,masterpiece";
-        prompt = $"\"{message.content.Replace("\"", "").Replace(',', '-')}\", {(NSFW ? "" : "sfw, ")}{character.imagePrompt}";
+        paidPrompt = $"\"{message.content.Replace("\"", "")}\",{(client.nsfw ? "" : "sfw,")}detailed,masterpiece";
+        prompt = $"\"{message.content.Replace("\"", "").Replace(',', '-')}\", {(client.nsfw ? "" : "sfw, ")}{character.imagePrompt}";
     }
 
     var imageRequest = new ImageRequest
@@ -431,12 +429,12 @@ app.MapGet("/api/generate-image", async (HttpRequest request) =>
     if (!request.Headers.TryGetValue("X-Prompt", out var _prompt))
         return Results.BadRequest();
 
+    using var client = new CrushChatClient(request);
+
     var prompt = _prompt.ToString().Replace("\"", "");
 
-    if (!NSFW && !prompt.Contains("sfw"))
+    if (!client.nsfw && !prompt.Contains("sfw"))
         prompt = "sfw, " + prompt;
-
-    using var client = new CrushChatClient(request);
 
     var info = await client.GenerateImageAsync(new()
     {
@@ -542,7 +540,7 @@ app.MapPost("/api/characters/create", async (HttpRequest request, [FromBody] Cha
 {
     using var client = new CrushChatClient(request);
 
-    if (!NSFW && !character.imagePrompt.Contains("sfw"))
+    if (!client.nsfw && !character.imagePrompt.Contains("sfw"))
         character.imagePrompt += (string.IsNullOrEmpty(character.imagePrompt) ? "" : ", ") + "sfw";
 
     character.persona = $"{character.name}'s Persona: {character.persona.Trim()}\n";
@@ -559,7 +557,7 @@ app.MapPost("/api/characters/update", async (HttpRequest request, [FromBody] Cha
 {
     using var client = new CrushChatClient(request);
     
-    if (!NSFW && !character.imagePrompt.Contains("sfw"))
+    if (!client.nsfw && !character.imagePrompt.Contains("sfw"))
         character.imagePrompt += (string.IsNullOrEmpty(character.imagePrompt) ? "" : ", ") + "sfw";
 
     character.persona = $"{character.name}'s Persona: {character.persona.Trim()}\n";

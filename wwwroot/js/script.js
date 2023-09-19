@@ -14,7 +14,8 @@
         sessionToken: "",
         translationClient: "",
         deeplAuthKey: "",
-        libreTranslateUrl: ""
+        libreTranslateUrl: "",
+        nsfw: "false",
     }
     
     for (const key in items)
@@ -24,8 +25,8 @@
 
 
 
-const hue = 330
-const sat = 0.9
+const hue = localStorage.nsfw == "true" ? 330 : 240
+const sat = localStorage.nsfw == "true" ? 0.9 : 0.05
 
 let cssRootDefault =
 [
@@ -396,6 +397,7 @@ Object.defineProperties(EventTarget.prototype,
             h['X-DeepL-Auth-Key'] = localStorage.getItem('deeplAuthKey')
             h['X-LibreTranslate-URL'] = localStorage.getItem('libreTranslateUrl')
             h['X-Language'] = localStorage.getItem('language')
+            h['X-NSFW'] = localStorage.getItem('nsfw')
             
             if (!me)
             {
@@ -1362,6 +1364,13 @@ class App
     
     applyCssRoot()
     {
+        const title = localStorage.getItem(`nsfw`) == `true`
+            ? `My CrushChat Client`
+            : `My Chatbot Client`
+        
+        $head.title = title
+        query(`[data-page="home"] > h2`).setHtml(title)
+        
         const set = (key, value) => document.documentElement.style.setProperty(key, value)
         
         for (const sectionDefault of cssRootDefault)

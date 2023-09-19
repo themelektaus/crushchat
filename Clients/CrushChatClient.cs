@@ -10,6 +10,7 @@ public class CrushChatClient : IDisposable
     readonly HttpClient client;
 
     public string userId { get; private set; }
+    public bool nsfw { get; private set; }
 
     public CrushChatClient(HttpRequest request)
     {
@@ -20,6 +21,9 @@ public class CrushChatClient : IDisposable
 
         if (request.Headers.TryGetValue("X-User-ID", out var _userId))
             userId = _userId;
+
+        if (request.Headers.TryGetValue("X-NSFW", out var _nsfw))
+            nsfw = _nsfw == "true";
     }
 
     public void Dispose()

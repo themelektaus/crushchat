@@ -3,10 +3,10 @@
     
     <head>
         <meta charset="UTF-8">
-        <title>My CrushChat Client</title>
+        <title></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=2023.09.19-1935">
-        <script src="js/script.js?v=2023.09.19-1935" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.19-2025">
+        <script src="js/script.js?v=2023.09.19-2025" defer></script>
     </head>
     
     <body class="display-none">
@@ -18,7 +18,7 @@
             
             <div data-page="home">
                 <div class="icon"></div>
-                <h2>My CrushChat Client</h2>
+                <h2></h2>
                 <button class="ripple" data-action="gotoPageAsync" data-target="characters">Characters</button>
                 <button class="ripple" data-action="gotoPageAsync" data-target="imageGenerator">Image Generator</button>
                 <button class="ripple" data-action="openDialogAsync" data-target="settings">Settings</button>
@@ -333,6 +333,10 @@
                 </div>
                 <div class="section">
                     <div class="title">Safety </div>
+                    <div class="field">
+                        <input data-bind="nsfw" type="checkbox">
+                        <div>NSFW</div>
+                    </div>
                     <div class="field">
                         <input data-bind="blurImages" type="checkbox">
                         <div>Blur Images</div>
