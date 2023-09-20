@@ -75,7 +75,7 @@ public class Character
         var index = persona.IndexOf("'s Persona:");
         personaFiltered = persona[(index + 11)..].Trim();
 
-        details = Utils.GetCharacterFile(userId, userFolder, id).ReadAsJson<Details>(new());
+        details = Utils.GetCharacterDetailsFile(userId, userFolder, id).ReadAsJson<Details>(new());
 
         return this;
     }
