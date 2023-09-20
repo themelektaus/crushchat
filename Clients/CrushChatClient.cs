@@ -275,14 +275,11 @@ public class CrushChatClient : IDisposable
         if (details is null)
             return;
 
-        if (messages.Count == 0)
-            return;
-
         var memories = details.memories;
         if (memories is null)
             return;
 
-        var firstIndex = messages.Min(x => x.messageIndex);
+        var firstIndex = messages.Count == 0 ? 0 : messages.Min(x => x.messageIndex);
         var note = "Another important information about me";
 
         for (int i = memories.Count - 1; i >= 0; i--)
