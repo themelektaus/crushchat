@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=2023.09.19-2320">
-        <script src="js/script.js?v=2023.09.19-2320" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.20-0710">
+        <script src="js/script.js?v=2023.09.20-0710" defer></script>
     </head>
     
     <body class="display-none">
@@ -191,13 +191,11 @@
                                 <label>Persona</label>
                                 <textarea data-bind="persona" style="height: 15rem; " placeholder="Descript the personaly and story of your character"></textarea>
                             </div>
-                            <!--
-                                <div class="field">
-                                    <label>Visibility</label>
-                                    <input data-bind="hidden" type="checkbox">
-                                    <div>Hidden</div>
-                                </div>
-                            -->
+                            <div class="field">
+                                <label>Visibility</label>
+                                <input data-bind="hidden" type="checkbox">
+                                <div>Hidden</div>
+                            </div>
                         </div>
                     </div>
                     <div class="tab">
@@ -266,7 +264,7 @@
                             <div>
                                 <textarea data-bind="imagePrompt"></textarea>
                             </div>
-                            <div style="flex-direction: row; justify-content: center; gap: 1rem; ">
+                            <div style="flex-direction: row; justify-content: center; gap: .75rem; ">
                                 <button class="ripple" data-action="dialogs.message.generateImageAsync">Generate</button>
                                 <button class="ripple" data-action="dialogs.message.deleteImageAsync">Delete</button>
                             </div>
@@ -303,6 +301,10 @@
                         <button class="ripple" data-action="dialogs.settings.parseTokensFromClipboardAsync">
                             Parse from Clipboard
                         </button>
+                    </div>
+                    <div class="field">
+                        <label>Additional Secret (optional)</label>
+                        <input data-bind="additionalSecret" type="text">
                     </div>
                 </div>
                 <div class="section">

@@ -151,7 +151,7 @@ textarea, textarea:hover {
 }
 
 input[type="checkbox"] {
-    width: 1.25em;
+    min-width: 1.25em;
     aspect-ratio: 1;
     margin: 0 .5rem 0 2rem;
     display: block; 
@@ -215,7 +215,7 @@ input[type="checkbox"] {
     padding: 3rem 1.25rem 1.25rem;
     box-sizing: border-box;
     display: flex;
-    gap: .5rem;
+    gap: .75rem;
     align-items: center;
     transition: opacity 120ms, bottom 120ms;
 }
@@ -700,7 +700,7 @@ input[type="checkbox"] {
     display: flex;
     justify-content: center;
     padding: 1rem;
-    gap: 1rem;
+    gap: .75rem;
 }
 
 [data-dialog="message"] > .content > .tabs > .container > .tab > .content > .image {
@@ -802,6 +802,7 @@ input[type="checkbox"] {
 
 .field > label + input[type="checkbox"] + div {
     margin: .5rem 0 0 0;
+    flex: 1;
 }
 
 .field > input,
@@ -1065,6 +1066,21 @@ input[type="range"]:hover::-webkit-slider-thumb {
     }
     .bottombar {
         padding: 3rem 1rem 1rem;
+    }
+    .field > label {
+        width: unset;
+        margin-top: .5rem;
+    }
+    .field:not(:has(input[type="checkbox"])) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: .5rem;
+    }
+    .field > label + input[type="checkbox"] {
+        margin: .6rem .3rem 0 1rem;
+    }
+    [data-dialog] > .content > .section > .grid-content {
+        grid-template-columns: repeat(1, 1fr);
     }
     [data-page="characters"] .characters {
         padding-left: 1rem;

@@ -27,6 +27,11 @@
   </ItemGroup>
   
   <ItemGroup>
+    <None Remove=".additionalSecret" />
+    <None Remove=".token" />
+  </ItemGroup>
+  
+  <ItemGroup>
     
     <_WebToolingArtifacts Remove="Properties\PublishProfiles\Linux.pubxml" />
     <_WebToolingArtifacts Remove="Properties\PublishProfiles\Windows.pubxml" />

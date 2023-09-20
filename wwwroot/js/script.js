@@ -12,6 +12,7 @@
         hideImages: "false",
         csrfToken: "",
         sessionToken: "",
+        additionalSecret: "",
         translationClient: "",
         deeplAuthKey: "",
         libreTranslateUrl: "",
@@ -406,6 +407,7 @@ Object.defineProperties(EventTarget.prototype,
             
             h['X-CSRF-Token'] = localStorage.getItem('csrfToken')
             h['X-Session-Token'] = localStorage.getItem('sessionToken')
+            h['X-Additional-Secret'] = localStorage.getItem('additionalSecret')
             h['X-Translation-Client'] = localStorage.getItem('translationClient')
             h['X-DeepL-Auth-Key'] = localStorage.getItem('deeplAuthKey')
             h['X-LibreTranslate-URL'] = localStorage.getItem('libreTranslateUrl')

@@ -71,6 +71,13 @@ public class CrushChatClient : IDisposable
         }
         var cachedCharacters = cachedCharactersEnumerable.ToList();
 
+        var showHidden = false;
+        if (request.Headers.TryGetValue("X-Additional-Secret", out var additionalSecret))
+            if (!string.IsNullOrEmpty(additionalSecret))
+                if (File.Exists(".additionalSecret"))
+                    if (File.ReadAllText(".additionalSecret") == additionalSecret)
+                        showHidden = true;
+
         if (request.GetQueryBoolean("cache", true))
         {
             characters = cachedCharacters;
@@ -80,28 +87,27 @@ public class CrushChatClient : IDisposable
             var path = "/api/characters";
             var queryString = $"&search=&limit=25";
 
-#if DEBUG
-            var recentCharacters = (await GetAsync<List<Character>>($"{path}/recent?page=1{queryString}&sortBy=Top"));
-            recentCharacters.ForEach(x => x.recent = true);
-#endif
+            var recentCharacters = new List<Character>();
+            if (showHidden)
+            {
+                recentCharacters.AddRange(await GetAsync<List<Character>>($"{path}/recent?page=1{queryString}&sortBy=Top"));
+                recentCharacters.ForEach(x => x.recent = true);
+            }
 
             var privateCharacters = await GetAsync<List<Character>>($"{path}?page=1{queryString}&sortBy=Top&isPrivate=true");
             privateCharacters.ForEach(x => x.isPrivate = true);
 
-#if DEBUG
             var publicCharacters = new List<Character>();
-            publicCharacters.AddRange(await GetAsync<List<Character>>($"{path}?page=1{queryString}&sortBy=Hot&tags="));
-            publicCharacters.ForEach(x => x.hot = true);
-#endif
+            if (showHidden)
+            {
+                publicCharacters.AddRange(await GetAsync<List<Character>>($"{path}?page=1{queryString}&sortBy=Hot&tags="));
+                publicCharacters.ForEach(x => x.hot = true);
+            }
 
             characters = Enumerable.Empty<Character>()
-#if DEBUG
                 .Concat(recentCharacters)
-#endif
                 .Concat(privateCharacters)
-#if DEBUG
                 .Concat(publicCharacters)
-#endif
                 .Concat(cachedCharacters)
                 .OrderByDescending(x => x.recent)
                 .ThenByDescending(x => x.isPrivate)
@@ -117,9 +123,8 @@ public class CrushChatClient : IDisposable
         }
 
         characters.ForEach(x => x.Prepare(userId));
-#if !DEBUG
-        characters.RemoveAll(x => x.details.hidden);
-#endif
+        if (!showHidden)
+            characters.RemoveAll(x => !x.isPrivate || x.details.hidden);
 
         if (request.NeedsTranslation(out var language))
             foreach (var character in characters)
