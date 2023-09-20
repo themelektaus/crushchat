@@ -29,17 +29,14 @@ public class DeepLClient : ITranslationClient
         List<Translation> translations = new();
         List<Translation> pending = new();
 
-        var languageFolder = Directory.CreateDirectory(Path.Combine("Data", "Translations", "DeepL", targetLanguage));
-
         foreach (var t in text)
         {
             var md5 = t.Trim().ToLower().ToMD5();
 
-            var languageFilePath = Path.Combine(languageFolder.FullName, $"{md5}.json");
-
-            if (File.Exists(languageFilePath))
+            var translation = Utils.GetTranslationFile_DeepL(targetLanguage, md5).ReadAsJson<Translation>();
+            if (translation is not null)
             {
-                translations.Add(File.ReadAllText(languageFilePath).FromJson<Translation>());
+                translations.Add(translation);
                 continue;
             }
 
@@ -76,8 +73,7 @@ public class DeepLClient : ITranslationClient
             foreach (var translation in block)
             {
                 var md5 = translation.original.Trim().ToLower().ToMD5();
-                var languageFilePath = Path.Combine(languageFolder.FullName, $"{md5}.json");
-                File.WriteAllText(languageFilePath, translation.ToJson());
+                translation.WriteJsonTo(Utils.GetTranslationFile_DeepL(targetLanguage, md5));
             }
 
             translations.AddRange(block);
@@ -98,7 +94,9 @@ public class DeepLClient : ITranslationClient
         var message = new HttpRequestMessage(HttpMethod.Post, "/v2/translate");
         message.Headers.Add("Authorization", $"DeepL-Auth-Key {authKey}");
 
-        var json = "{\"text\":[" + string.Join(",", text.Select(x => x.ToJson())) + "],\"source_lang\":\"" + sourceLanguage + "\",\"target_lang\":\"" + targetLanguage + "\",\"formality\":\"prefer_less\"}";
+        var json = "{\"text\":[" + string.Join(",", text.Select(x => x.ToJson())) + "],\"source_lang\":\""
+            + sourceLanguage + "\",\"target_lang\":\"" + targetLanguage + "\",\"formality\":\"prefer_less\"}";
+
         message.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
         return message;

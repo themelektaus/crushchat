@@ -314,7 +314,7 @@ app.MapGet("/api/characters/{characterId}/messages/delete/{index}", async (HttpR
 
     var (success, response) = await client.SendAsync(message);
     if (success)
-        File.Delete(Path.Combine("UserData", client.userId, "Messages", $"{characterId}.json"));
+        Utils.GetMessageFile(client, characterId).TryDelete();
 
     return response;
 });
@@ -336,7 +336,7 @@ app.MapGet("/api/characters/{characterId}/messages/clear", async (HttpRequest re
 
     var (success, response) = await client.SendAsync(message);
     if (success)
-        File.Delete(Path.Combine("UserData", client.userId, "Messages", $"{characterId}.json"));
+        Utils.GetMessageFile(client, characterId).TryDelete();
 
     return response;
 });
@@ -364,7 +364,6 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
 
     if (request.Headers.TryGetValue("X-Prompt", out var _prompt))
     {
-        
         prompt = _prompt.ToString().Replace("\"", "");
         paidPrompt = prompt + (client.nsfw ? "" : ",sfw");
         prompt += (client.nsfw ? "" : ", sfw");
@@ -458,21 +457,15 @@ app.MapGet("/api/generate-image", async (HttpRequest request) =>
 app.MapGet("/api/images", (HttpRequest request) =>
 {
     using var client = new CrushChatClient(request);
-    if (client.userId is null)
+    if (!client.isUser)
         return new();
 
-    var folder = Path.Combine("UserData", client.userId, "Images");
-    if (!Directory.Exists(folder))
-        return new();
-
-    return Directory
-        .EnumerateFiles(folder, "*.json")
-        .Select(x => new FileInfo(x))
+    return Utils.GetImageInfoFiles(client)
         .OrderByDescending(x => x.CreationTimeUtc)
         .Select(x =>
         {
-            var info = File.ReadAllText(x.FullName).FromJson<ImageInfo>();
-            return info.Load(client.userId, Path.GetFileNameWithoutExtension(x.FullName));
+            var info = x.ReadAsJson<ImageInfo>();
+            return info.Load(client.userId, client.userFolder, Path.GetFileNameWithoutExtension(x.FullName));
         })
         .ToList();
 });
@@ -481,31 +474,43 @@ app.MapGet("/api/images", (HttpRequest request) =>
 
 
 
-#region GET /api/images/{id}
+#region GET /api/images/{id}.png
 
-app.MapGet("/api/images/{userId}/{id}", async (HttpRequest request, string userId, string id) =>
+app.MapGet("/api/images/{id}", FindImagePng);
+app.MapGet("/api/images/{id}.png", FindImagePng);
+app.MapGet("/api/images/{_}/{id}", (string _, string id) => FindImagePng(id));
+app.MapGet("/api/images/{_}/{id}.png", (string _, string id) => FindImagePng(id));
+app.MapGet("/api/images/{userId}/{userFolder}/{id}", GetImagePng);
+app.MapGet("/api/images/{userId}/{userFolder}/{id}.png", GetImagePng);
+
+static async Task<IResult> FindImagePng(string id)
 {
-    var basePath = Path.Combine("UserData", userId, "Images", id);
+    var file = Utils.FindImageFile(id);
+    var content = await File.ReadAllBytesAsync(file.FullName);
+    return Results.File(content, contentType: "image/png");
+}
 
+static async Task<IResult> GetImagePng(HttpRequest request, string userId, string userFolder, string id)
+{
     if (request.GetQueryBoolean("delete", false))
     {
         using var client = new CrushChatClient(request);
-        if (client.userId != userId)
-            return Results.BadRequest();
+        {
+            if (client.userId != userId || client.userFolder != userFolder)
+                return Results.BadRequest();
+        }
 
-        if (File.Exists($"{basePath}.json"))
-            File.Delete($"{basePath}.json");
-
-        if (File.Exists($"{basePath}.png"))
-            File.Delete($"{basePath}.png");
+        Utils.GetImageInfoFile(userId, userFolder, id).TryDelete();
+        Utils.GetImageFile(userId, userFolder, id).TryDelete();
 
         return Results.Ok();
     }
 
-    var content = await File.ReadAllBytesAsync($"{basePath}.png");
+    var file = Utils.GetImageFile(userId, userFolder, id);
+    var content = await File.ReadAllBytesAsync(file.FullName);
 
     return Results.File(content, contentType: "image/png");
-});
+}
 
 #endregion
 
@@ -556,7 +561,7 @@ app.MapPost("/api/characters/create", async (HttpRequest request, [FromBody] Cha
 app.MapPost("/api/characters/update", async (HttpRequest request, [FromBody] Character.Creation.Edit.WithDetails character) =>
 {
     using var client = new CrushChatClient(request);
-    
+
     if (!client.nsfw && !character.imagePrompt.Contains("sfw"))
         character.imagePrompt += (string.IsNullOrEmpty(character.imagePrompt) ? "" : ", ") + "sfw";
 

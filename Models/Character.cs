@@ -15,14 +15,12 @@ public class Character
             {
                 public Details details { get; set; }
 
-                public void WriteDetails(string userId)
+                public void WriteDetails(string userId, string userFolder)
                 {
                     if (details is null)
                         return;
 
-                    var folder = Directory.CreateDirectory(Path.Combine("UserData", userId, "CharacterDetails"));
-                    var path = Path.Combine(folder.FullName, $"{id}.json");
-                    File.WriteAllText(path, details.ToJson());
+                    details.WriteJsonTo(Utils.GetCharacterDetailsFile(userId, userFolder, id));
                     details = null;
                 }
             }
@@ -51,11 +49,10 @@ public class Character
     public string personaFiltered { get; set; }
     public string personaFilteredTranslated { get; set; }
     public string initialMessages { get; set; }
-    public int upvote { get; set; }
+    public int upvotes { get; set; }
     public bool isPrivate { get; set; }
 
     public bool recent { get; set; }
-    public bool hot { get; set; }
 
     public class Details
     {
@@ -67,25 +64,18 @@ public class Character
             public string content { get; set; }
         }
         public List<Memory> memories { get; set; }
-
-        public bool hidden { get; set; }
     }
     
     public Details details { get; set; }
 
-    public Character Prepare(string userId)
+    public Character Prepare(string userId, string userFolder)
     {
         initialMessages ??= "[]";
 
         var index = persona.IndexOf("'s Persona:");
         personaFiltered = persona[(index + 11)..].Trim();
 
-        var folder = Directory.CreateDirectory(Path.Combine("UserData", userId, "CharacterDetails"));
-        var file = new FileInfo(Path.Combine(folder.FullName, $"{id}.json"));
-
-        details = file.Exists
-            ? File.ReadAllText(file.FullName).FromJson<Details>()
-            : new();
+        details = Utils.GetCharacterFile(userId, userFolder, id).ReadAsJson<Details>(new());
 
         return this;
     }

@@ -22,17 +22,14 @@ public class LibreTranslateClient : ITranslationClient
         List<Translation> translations = new();
         List<Translation> pending = new();
 
-        var languageFolder = Directory.CreateDirectory(Path.Combine("Data", "Translations", "LibreTranslate", targetLanguage));
-
         foreach (var t in text)
         {
             var md5 = t.Trim().ToLower().ToMD5();
 
-            var languageFilePath = Path.Combine(languageFolder.FullName, $"{md5}.json");
-
-            if (File.Exists(languageFilePath))
+            var translation = Utils.GetTranslationFile_LibreTranslate(targetLanguage, md5).ReadAsJson<Translation>();
+            if (translation is not null)
             {
-                translations.Add(File.ReadAllText(languageFilePath).FromJson<Translation>());
+                translations.Add(translation);
                 continue;
             }
 
@@ -61,8 +58,7 @@ public class LibreTranslateClient : ITranslationClient
             translation.translation = response.translatedText;
 
             var md5 = translation.original.Trim().ToLower().ToMD5();
-            var languageFilePath = Path.Combine(languageFolder.FullName, $"{md5}.json");
-            File.WriteAllText(languageFilePath, translation.ToJson());
+            translation.WriteJsonTo(Utils.GetTranslationFile_LibreTranslate(targetLanguage, md5));
 
             translations.Add(translation);
         }

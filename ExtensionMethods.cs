@@ -17,6 +17,18 @@ public static class ExtensionMethods
         return JsonSerializer.Serialize(@this);
     }
 
+    public static void WriteJsonTo<T>(this T @this, FileInfo file)
+    {
+        File.WriteAllText(file.FullName, @this.ToJson());
+    }
+
+    public static T ReadAsJson<T>(this FileInfo @this, T defaultValue = default)
+    {
+        return @this.Exists
+            ? File.ReadAllText(@this.FullName).FromJson<T>()
+            : defaultValue;
+    }
+
     public static T FromJson<T>(this string @this)
     {
         return JsonSerializer.Deserialize<T>(@this);
@@ -32,15 +44,15 @@ public static class ExtensionMethods
 
     public static string TranslateTo(this string @this, string targetLanguage)
     {
-        var path = Path.Combine("Data", "Translations", "DeepL", targetLanguage, $"{@this.Trim().ToLower().ToMD5()}.json");
+        var file = Utils.GetTranslationFile_DeepL(targetLanguage, @this.Trim().ToLower().ToMD5());
 
-        if (!File.Exists(path))
-            path = Path.Combine("Data", "Translations", "LibreTranslate", targetLanguage, $"{@this.Trim().ToLower().ToMD5()}.json");
-
-        if (!File.Exists(path))
+        if (!file.Exists)
+            file = Utils.GetTranslationFile_LibreTranslate(targetLanguage, @this.Trim().ToLower().ToMD5());
+        
+        if (!file.Exists)
             return null;
 
-        return File.ReadAllText(path).FromJson<Translation>().translation;
+        return file.ReadAsJson<Translation>().translation;
     }
 
     public static bool NeedsTranslation(this HttpRequest @this, out string language)
@@ -76,4 +88,10 @@ public static class ExtensionMethods
 
     public static bool HasQueryValue(this HttpContext @this, string key)
         => @this.Request.Query.ContainsKey(key);
+
+    public static void TryDelete(this FileInfo @this)
+    {
+        if (@this.Exists)
+            @this.Delete();
+    }
 }

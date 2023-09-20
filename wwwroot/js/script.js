@@ -399,12 +399,20 @@ Object.defineProperties(EventTarget.prototype,
     {
         value: async function(url, options)
         {
+            const userFolder = localStorage.getItem('userFolder')
+            if (!userFolder)
+            {
+                await App.instance.gotoPageAsync(`home`)
+                throw "userFolder is null"
+            }
+            
             options ??= { }
             
             options.headers ??= { }
             
             const h = options.headers
             
+            h['X-User-Folder'] = userFolder
             h['X-CSRF-Token'] = localStorage.getItem('csrfToken')
             h['X-Session-Token'] = localStorage.getItem('sessionToken')
             h['X-Additional-Secret'] = localStorage.getItem('additionalSecret')
@@ -1667,6 +1675,9 @@ class CharactersPage extends Page
     
     #onScroll(e)
     {
+        if (App.instance.isLoading())
+            return
+    
         if (e.target != document)
             return
         
@@ -1713,6 +1724,7 @@ class CharactersPage extends Page
             
             $character.query(`.name`).setHtml(character.name)
             $character.query(`.description`).setHtml(character.descriptionTranslated || character.description)
+            $character.query(`.upvotes`).setHtml(character.upvotes)
             $character.query(`.recent`).toggleClass(`display-none`, !character.recent)
             $character.query(`.private`).toggleClass(`display-none`, !character.isPrivate)
             $character.query(`.public`).toggleClass(`display-none`, character.isPrivate)
@@ -1724,7 +1736,8 @@ class CharactersPage extends Page
     async refreshCharactersAsync()
     {
         App.instance.startLoading()
-        await App.instance.fetchCharactersAsync({ all: true, cache: false, limit: 0 })
+        const search = this.$search.value.toLowerCase().trim()
+        await App.instance.fetchCharactersAsync({ all: true, cache: false, limit: 0, search: search })
         await this.onLoadAsync()
         App.instance.stopLoading()
         
@@ -1967,6 +1980,7 @@ class ImageGeneratorPage extends Page
         this.$image.setBackgroundImage(``)
         
         this.userId = null
+        this.userFolder = null
         this.imageId = null
         this.isRealistic = false
         this.prompt = ``
@@ -2012,6 +2026,7 @@ class ImageGeneratorPage extends Page
         this.$image.setBackgroundImage(image.url)
         
         this.userId = image.userId
+        this.userFolder = image.userFolder
         this.imageId = image.id
         this.isRealistic = image.request.isRealistic
         this.prompt = image.request.prompt
@@ -2056,7 +2071,7 @@ class ImageGeneratorPage extends Page
         
         let error = false
         const query = { delete: true }
-        await fetchAsync(`api/images/${this.userId}/${this.imageId}${query.toQueryString()}`)
+        await fetchAsync(`api/images/${this.userId}/${this.userFolder}/${this.imageId}.png${query.toQueryString()}`)
             .catch(() => error = true)
         
         if (error)
@@ -2076,7 +2091,7 @@ class ImageGeneratorPage extends Page
         if (permission.state == "denied")
             return
         
-        await navigator.clipboard.writeText(`${location.origin}/api/images/${this.userId}/${this.imageId}`)
+        await navigator.clipboard.writeText(`${location.origin}/api/images/${this.userId}/${this.userFolder}/${this.imageId}.png`)
     }
     
     async copyRelativeUrlAsync()
@@ -2085,7 +2100,7 @@ class ImageGeneratorPage extends Page
         if (permission.state == "denied")
             return
         
-        await navigator.clipboard.writeText(`/api/images/${this.userId}/${this.imageId}`)
+        await navigator.clipboard.writeText(`/api/images/${this.userId}/${this.userFolder}/${this.imageId}.png`)
     }
 }
 

@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=2023.09.20-0710">
-        <script src="js/script.js?v=2023.09.20-0710" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.20-2010">
+        <script src="js/script.js?v=2023.09.20-2010" defer></script>
     </head>
     
     <body class="display-none">
@@ -50,6 +50,7 @@
                                 <div class="name"></div>
                                 <div class="description"></div>
                                 <div class="badges">
+                                    <div class="badge upvotes"></div>
                                     <div class="badge recent">Recent</div>
                                     <div class="badge private">Private</div>
                                     <div class="badge public">Public</div>
@@ -191,11 +192,6 @@
                                 <label>Persona</label>
                                 <textarea data-bind="persona" style="height: 15rem; " placeholder="Descript the personaly and story of your character"></textarea>
                             </div>
-                            <div class="field">
-                                <label>Visibility</label>
-                                <input data-bind="hidden" type="checkbox">
-                                <div>Hidden</div>
-                            </div>
                         </div>
                     </div>
                     <div class="tab">
@@ -289,6 +285,14 @@
                 <div class="section">
                     <div class="title">CrushChat Cookies</div>
                     <div class="field">
+                        <label>User Folder</label>
+                        <input data-bind="userFolder" type="text">
+                    </div>
+                    <div class="field">
+                        <label>Additional Secret</label>
+                        <input data-bind="additionalSecret" type="text">
+                    </div>
+                    <div class="field">
                         <label>CSRF Token</label>
                         <input data-bind="csrfToken" type="text">
                     </div>
@@ -301,10 +305,6 @@
                         <button class="ripple" data-action="dialogs.settings.parseTokensFromClipboardAsync">
                             Parse from Clipboard
                         </button>
-                    </div>
-                    <div class="field">
-                        <label>Additional Secret (optional)</label>
-                        <input data-bind="additionalSecret" type="text">
                     </div>
                 </div>
                 <div class="section">
