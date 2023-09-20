@@ -1684,7 +1684,7 @@ class CharactersPage extends Page
         const $ = document.documentElement
         const delta = $.offsetHeight - $.scrollTop - $.clientHeight
         
-        if (delta > 2)
+        if (delta > 100)
             return
         
         this.#searchTask.run(async () =>
