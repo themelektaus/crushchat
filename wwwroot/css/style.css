@@ -252,7 +252,8 @@ input[type="checkbox"] {
 .bottombar .menu > .separator {
     padding: 0;
     pointer-events: none;
-    height: .75rem;
+    margin: .5rem 0;
+    border-top: 1.5px dashed #fff3;
 }
 
 .bottombar .menu > div:hover {

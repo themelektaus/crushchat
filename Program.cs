@@ -593,6 +593,28 @@ app.MapGet("/api/characters/{characterId}/delete", async (HttpRequest request, s
 #endregion
 
 
+#region /api/translations
+
+app.MapGet("/api/translations", () =>
+{
+    return new[]
+    {
+        "/api/translations/deepl/de",
+        "/api/translations/deepl/de/update",
+        "/api/translations/deepl/en-us",
+        "/api/translations/deepl/en-us/update",
+        "/api/translations/deepl/es",
+        "/api/translations/deepl/es/update",
+        "/api/translations/libretranslate/de",
+        "/api/translations/libretranslate/de/update",
+        "/api/translations/libretranslate/en-us",
+        "/api/translations/libretranslate/en-us/update",
+        "/api/translations/libretranslate/es",
+        "/api/translations/libretranslate/es/update"
+    };
+});
+
+#endregion
 
 #region /api/translations/{client}/{language}
 
