@@ -2,6 +2,29 @@
 
 public static class Utils
 {
+    static readonly object handlesLock = new();
+    static readonly Dictionary<int, object> handles = new();
+
+    public static object Lock(string @string)
+    {
+        return Lock(@string.GetHashCode());
+    }
+
+    public static object Lock(int hashCode)
+    {
+        object result;
+        lock (handlesLock)
+        {
+            if (!handles.ContainsKey(hashCode))
+                handles.Add(hashCode, new object());
+
+            result = handles[hashCode];
+        }
+        return result;
+    }
+
+
+
     public static DirectoryInfo GetTranslationsFolder_DeepL(string language)
     {
         return GetTranslationsFolder("DeepL", language);

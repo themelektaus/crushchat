@@ -551,6 +551,7 @@ input[type="checkbox"] {
     padding: .125rem .5rem;
     border-radius: 1rem;
     display: inline;
+    -webkit-box-decoration-break: clone;
 }
 
 [data-page="chat"] > .messages > .message.you > .content > .text > .topic {

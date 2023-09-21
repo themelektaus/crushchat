@@ -483,14 +483,19 @@ app.MapGet("/api/images/{_}/{id}.png", (string _, string id) => FindImagePng(id)
 app.MapGet("/api/images/{userId}/{userFolder}/{id}", GetImagePng);
 app.MapGet("/api/images/{userId}/{userFolder}/{id}.png", GetImagePng);
 
-static async Task<IResult> FindImagePng(string id)
+static IResult FindImagePng(string id)
 {
     var file = Utils.FindImageFile(id);
-    var content = await File.ReadAllBytesAsync(file.FullName);
+
+    byte[] content;
+
+    lock (Utils.Lock(file.FullName))
+        content = File.ReadAllBytes(file.FullName);
+
     return Results.File(content, contentType: "image/png");
 }
 
-static async Task<IResult> GetImagePng(HttpRequest request, string userId, string userFolder, string id)
+static IResult GetImagePng(HttpRequest request, string userId, string userFolder, string id)
 {
     if (request.GetQueryBoolean("delete", false))
     {
@@ -507,7 +512,11 @@ static async Task<IResult> GetImagePng(HttpRequest request, string userId, strin
     }
 
     var file = Utils.GetImageFile(userId, userFolder, id);
-    var content = await File.ReadAllBytesAsync(file.FullName);
+
+    byte[] content;
+
+    lock (Utils.Lock(file.FullName))
+        content = File.ReadAllBytes(file.FullName);
 
     return Results.File(content, contentType: "image/png");
 }
@@ -579,6 +588,75 @@ app.MapGet("/api/characters/{characterId}/delete", async (HttpRequest request, s
 {
     using var client = new CrushChatClient(request);
     return await client.DeleteCharacterAsync(characterId);
+});
+
+#endregion
+
+
+
+#region /api/translations/{client}/{language}
+
+app.MapGet("/api/translations/{client}/{language}", (string client, string language) =>
+{
+    DirectoryInfo folder;
+
+    switch (client)
+    {
+        case "deepl":
+            folder = Utils.GetTranslationsFolder_DeepL(language.ToUpper());
+            break;
+
+        case "libretranslate":
+            folder = Utils.GetTranslationsFolder_LibreTranslate(language.ToUpper());
+            break;
+
+        default:
+            return Enumerable.Empty<Translation>();
+    }
+
+    return Utils.EnumerateJsonFiles(folder)
+        .Select(x => x.ReadAsJson<Translation>())
+        .OrderBy(x => x.original);
+});
+
+#endregion
+
+
+
+#region /api/translations/{client}/{language}/update
+
+app.MapGet("/api/translations/{client}/{language}/update", (string client, string language) =>
+{
+    DirectoryInfo folder;
+
+    switch (client)
+    {
+        case "deepl":
+            folder = Utils.GetTranslationsFolder_DeepL(language.ToUpper());
+            break;
+
+        case "libretranslate":
+            folder = Utils.GetTranslationsFolder_LibreTranslate(language.ToUpper());
+            break;
+
+        default:
+            return Enumerable.Empty<Translation>();
+    }
+
+    var translations = new List<Translation.Debug>();
+
+    foreach (var file in Utils.EnumerateJsonFiles(folder))
+    {
+        var translation = file.ReadAsJson<Translation.Debug>();
+        translation.original = translation.original.Trim();
+        translation.translation = translation.translation.Trim();
+        translation.filename = Path.GetFileNameWithoutExtension(file.Name);
+        translation.filenameRegenerated = translation.original.ToLower().ToMD5();
+        (translation as Translation).WriteJsonTo(file);
+        translations.Add(translation);
+    }
+
+    return translations;
 });
 
 #endregion

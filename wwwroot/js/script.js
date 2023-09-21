@@ -1852,6 +1852,7 @@ class ChatPage extends Page
             const name = isYou ? `You` : this.character.name.split(`:`).pop().trim()
             
             let text = message.contentTranslated || message.content
+            text = text.replaceAll(`<`, `&lt;`).replaceAll(`>`, `&gt;`)
             text = text.replaceAll(/\*(.*?)\*/g, (m, g) => `<span class="topic">*${g}*</span>`)
             
             const $message = this.$messageTemplate

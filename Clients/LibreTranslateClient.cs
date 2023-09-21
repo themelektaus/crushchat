@@ -24,7 +24,8 @@ public class LibreTranslateClient : ITranslationClient
 
         foreach (var t in text)
         {
-            var md5 = t.Trim().ToLower().ToMD5();
+            var _t = t.Trim();
+            var md5 = _t.ToLower().ToMD5();
 
             var translation = Utils.GetTranslationFile_LibreTranslate(targetLanguage, md5).ReadAsJson<Translation>();
             if (translation is not null)
@@ -33,7 +34,7 @@ public class LibreTranslateClient : ITranslationClient
                 continue;
             }
 
-            pending.Add(new() { original = t, translation = null });
+            pending.Add(new() { original = _t, translation = null });
         }
 
         foreach (var translation in pending)
@@ -55,9 +56,9 @@ public class LibreTranslateClient : ITranslationClient
 
             var response = await result.Content.ReadFromJsonAsync<Response>();
 
-            translation.translation = response.translatedText;
+            translation.translation = response.translatedText.Trim();
 
-            var md5 = translation.original.Trim().ToLower().ToMD5();
+            var md5 = translation.original.ToLower().ToMD5();
             translation.WriteJsonTo(Utils.GetTranslationFile_LibreTranslate(targetLanguage, md5));
 
             translations.Add(translation);

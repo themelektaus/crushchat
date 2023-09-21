@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+
 using System.Text;
 using System.Text.Json;
 
@@ -19,14 +20,22 @@ public static class ExtensionMethods
 
     public static void WriteJsonTo<T>(this T @this, FileInfo file)
     {
-        File.WriteAllText(file.FullName, @this.ToJson());
+        var contents = @this.ToJson();
+        lock (Utils.Lock(file.FullName))
+            File.WriteAllText(file.FullName, contents);
     }
 
     public static T ReadAsJson<T>(this FileInfo @this, T defaultValue = default)
     {
-        return @this.Exists
-            ? File.ReadAllText(@this.FullName).FromJson<T>()
-            : defaultValue;
+        if (!@this.Exists)
+            return defaultValue;
+
+        string contents;
+        
+        lock (Utils.Lock(@this.FullName))
+            contents = File.ReadAllText(@this.FullName);
+
+        return contents.FromJson<T>();
     }
 
     public static T FromJson<T>(this string @this)
@@ -48,7 +57,7 @@ public static class ExtensionMethods
 
         if (!file.Exists)
             file = Utils.GetTranslationFile_LibreTranslate(targetLanguage, @this.Trim().ToLower().ToMD5());
-        
+
         if (!file.Exists)
             return null;
 

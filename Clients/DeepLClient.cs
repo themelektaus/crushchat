@@ -31,7 +31,8 @@ public class DeepLClient : ITranslationClient
 
         foreach (var t in text)
         {
-            var md5 = t.Trim().ToLower().ToMD5();
+            var _t = t.Trim();
+            var md5 = _t.ToLower().ToMD5();
 
             var translation = Utils.GetTranslationFile_DeepL(targetLanguage, md5).ReadAsJson<Translation>();
             if (translation is not null)
@@ -40,7 +41,7 @@ public class DeepLClient : ITranslationClient
                 continue;
             }
 
-            pending.Add(new() { original = t, translation = null });
+            pending.Add(new() { original = _t, translation = null });
         }
 
         while (pending.Count > 0)
@@ -68,11 +69,11 @@ public class DeepLClient : ITranslationClient
             var response = await result.Content.ReadFromJsonAsync<Response>();
 
             for (int i = 0; i < block.Count; i++)
-                block[i].translation = response.translations[i].text;
+                block[i].translation = response.translations[i].text.Trim();
 
             foreach (var translation in block)
             {
-                var md5 = translation.original.Trim().ToLower().ToMD5();
+                var md5 = translation.original.ToLower().ToMD5();
                 translation.WriteJsonTo(Utils.GetTranslationFile_DeepL(targetLanguage, md5));
             }
 

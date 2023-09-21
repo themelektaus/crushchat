@@ -86,10 +86,21 @@ public class CrushChatClient : IDisposable
 
         var showAll = false;
         if (request.Headers.TryGetValue("X-Additional-Secret", out var additionalSecret))
+        {
             if (!string.IsNullOrEmpty(additionalSecret))
+            {
                 if (File.Exists(".additionalSecret"))
-                    if (File.ReadAllText(".additionalSecret") == additionalSecret)
+                {
+                    string _additionalSecret;
+                    
+                    lock (Utils.Lock(".additionalSecret"))
+                        _additionalSecret = File.ReadAllText(".additionalSecret");
+
+                    if (_additionalSecret == additionalSecret)
                         showAll = true;
+                }
+            }
+        }
 
         IEnumerable<Character> Filtered(IEnumerable<Character> characters)
             => characters.Where(x =>
