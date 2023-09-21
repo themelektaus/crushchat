@@ -13,7 +13,6 @@
 ## Demo
 
 - Visit https://crushchat.steinalt.online to have a first look.
-- No user specific data is stored on the server.
 
 ![](https://github.com/themelektaus/crushchat/blob/main/Screenshots/Screenshot%202023-09-01%20X.png)
 
