@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=2023.09.21-1645">
-        <script src="js/script.js?v=2023.09.21-1645" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.22-1320">
+        <script src="js/script.js?v=2023.09.22-1320" defer></script>
     </head>
     
     <body class="display-none">
@@ -427,6 +427,19 @@
                 <button class="ripple" data-action="dialogs.appearanceReset.cancel">Cancel</button>
             </div>
         </div>
+        
+        
+        <!-- Error Dialog -->
+        
+        <div class="overlay" style="z-index: 1; "></div>
+        <div data-dialog="error" style="width: max-content; ">
+            <div class="title" style="text-align: center; padding-left: 1rem; ">Error</div>
+            <div class="content" style="text-align: center; padding-top: 0; "></div>
+            <div class="bottom">
+                <button class="ripple" data-action="dialogs.error.cancel">Close</button>
+            </div>
+        </div>
+        
         
         <div id="tooltip"></div>
         

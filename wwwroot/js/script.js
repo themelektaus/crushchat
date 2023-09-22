@@ -348,6 +348,7 @@ let cssRootDefault =
 
 
 let me = null
+let errors = []
 
 
 
@@ -402,8 +403,8 @@ Object.defineProperties(EventTarget.prototype,
             const userFolder = localStorage.getItem('userFolder')
             if (!userFolder)
             {
-                await App.instance.gotoPageAsync(`home`)
-                throw "userFolder is null"
+                errors.push(`userFolder is null`)
+                return null
             }
             
             options ??= { }
@@ -424,12 +425,17 @@ Object.defineProperties(EventTarget.prototype,
             
             if (!me)
             {
-                await window.fetch(`api/me`, options).then(x => x.json()).then(x => me = x)
+                me = await window.fetch(`api/me`, options).thenJson(null)
                 if (!me || !me.id)
                 {
+                    if (!me)
+                        errors.push(`me is null`)
+                    
+                    else if (!me.id)
+                        errors.push(`me.id is null`)
+                    
                     me = null
-                    await App.instance.gotoPageAsync(`home`)
-                    throw "me is null"
+                    return null
                 }
             }
             
@@ -641,8 +647,9 @@ Object.defineProperties(EventTarget.prototype,
                     
                     this.style.transition = ``
                     
-                    if (!this.attributes[`style`].value)
-                        this.removeAttribute(`style`)
+                    if (this.attributes[`style`])
+                        if (!this.attributes[`style`].value)
+                            this.removeAttribute(`style`)
                     
                     this.removeClass(`no-background-image`)
                     
@@ -667,6 +674,31 @@ Object.defineProperties(EventTarget.prototype,
             this.toggleClass(`display-none`, !visible)
             this.toggleClass(`important`, !visible)
             return this
+        }
+    },
+})
+
+Object.defineProperties(Promise.prototype,
+{
+    thenJson:
+    {
+        value: function(defaultValue)
+        {
+            try
+            {
+                return this
+                    .then(x => x.json())
+                    .catch(e =>
+                    {
+                        errors.push(e)
+                        return defaultValue
+                    })
+            }
+            catch (e)
+            {
+                errors.push(e)
+                return defaultValue
+            }
         }
     },
 })
@@ -914,6 +946,14 @@ Object.defineProperties(Object.prototype,
             return new Promise(x => setTimeout(x, ms))
         }
     },
+    waitFor:
+    {
+        value: async function(predicate)
+        {
+            while (!predicate())
+                await delay(10)
+        }
+    },
     stopTimeout:
     {
         value: function(handle)
@@ -1029,6 +1069,7 @@ class App
             new ClearChatDialog,
             new AppearanceDialog,
             new AppearanceResetDialog,
+            new ErrorDialog,
         ])
         {
             this.dialogs[dialog.name] = dialog
@@ -1056,6 +1097,34 @@ class App
     
     async mainAsync()
     {
+        const errorsUpdate = async () =>
+        {
+            for (;;)
+            {
+                if (errors.length > 0)
+                {
+                    if (this.pages.home.$.hasClass(`display-none`))
+                    {
+                        await waitFor(() => !this.isLoading())
+                        await delay(300)
+                        await App.instance.gotoPageAsync(`home`)
+                    }
+                    
+                    const error = errors.shift()
+                    console.error(error)
+                    
+                    const dialog = await App.instance.openDialogAsync(`error`, { text: error })
+                    
+                    await waitFor(() => dialog.$.hasClass(`hidden`))
+                    if (errors.length > 0)
+                        disableInput()
+                }
+                
+                await delay(200)
+            }
+        }
+        errorsUpdate()
+        
         if (!localStorage.getItem(`appearance`))
             localStorage.setItem(`appearance`, `[]`)
         
@@ -1240,7 +1309,7 @@ class App
             
             this.startLoading()
             
-            this.pages.chat.character = await fetchAsync(`api/characters/${route.id}`).then(x => x.json())
+            this.pages.chat.character = await fetchAsync(`api/characters/${route.id}`).thenJson([])
             
             if (!this.pages.chat.character)
             {
@@ -1316,10 +1385,13 @@ class App
         if ($prev.hasClass(`overlay`))
             $prev.removeClass(`hidden`)
         
-        if (this.dialogs[dialog].onOpenAsync)
-            await this.dialogs[dialog].onOpenAsync(userData)
+        const _dialog = this.dialogs[dialog]
+        if (_dialog.onOpenAsync)
+            await _dialog.onOpenAsync(userData)
         
         enableInput()
+        
+        return _dialog
     }
     
     async gotoPageAsync(sender, id)
@@ -1511,8 +1583,6 @@ class App
     
     async fetchCharactersAsync(options)
     {
-        let error = false
-        
         options ??= { }
         
         const query = {
@@ -1526,17 +1596,7 @@ class App
             search: options.search ?? ``
         }
         
-        const characters = await fetchAsync(`api/characters${query.toQueryString()}`)
-            .then(x => x.json())
-            .catch(() => error = true)
-        
-        if (error)
-        {
-            await this.gotoPageAsync(`home`)
-            return null
-        }
-        
-        return characters
+        return await fetchAsync(`api/characters${query.toQueryString()}`).thenJson([])
     }
 }
 
@@ -1838,7 +1898,7 @@ class ChatPage extends Page
             this.scrollDown()
         
         const url = `api/characters/${this.character.id}/messages${options.toQueryString()}`
-        const messages = await fetchAsync(url).then(x => x.json())
+        const messages = await fetchAsync(url).thenJson([])
         
         this.$messages.clearHtml()
         
@@ -1989,7 +2049,7 @@ class ImageGeneratorPage extends Page
         
         this.$historyContent.clearHtml()
         
-        const images = await fetchAsync(`api/images`).then(x => x.json())
+        const images = await fetchAsync(`api/images`).thenJson([])
         
         this.firstImage = null
         
@@ -2048,16 +2108,8 @@ class ImageGeneratorPage extends Page
         
         this.$image.setBackgroundImage(``)
         
-        let error = false
         const query = { realistic: this.isRealistic }
         await fetchAsync(`api/generate-image${query.toQueryString()}`, options)
-            .catch(e => error = e)
-        
-        if (error)
-        {
-            await App.instance.gotoPageAsync(`home`)
-            return
-        }
         
         await this.refreshAsync()
         
@@ -2070,16 +2122,8 @@ class ImageGeneratorPage extends Page
     {
         App.instance.startLoading()
         
-        let error = false
         const query = { delete: true }
         await fetchAsync(`api/images/${this.userId}/${this.userFolder}/${this.imageId}.png${query.toQueryString()}`)
-            .catch(() => error = true)
-        
-        if (error)
-        {
-            await App.instance.gotoPageAsync(`home`)
-            return
-        }
         
         await this.refreshAsync()
         
@@ -2176,18 +2220,21 @@ class CharacterDialog extends Dialog
         this.$.query(`[data-action="dialogs.character.deleteAsync"]`).removeClass(`display-none`)
         
         const url = `api/characters/${this.#chat.character.id}`
-        const character = await fetchAsync(url).then(x => x.json())
+        const character = await fetchAsync(url).thenJson(null)
         
-        this.data.name = character.name
-        this.data.description = character.description
-        this.data.imagePrompt = character.imagePrompt
-        this.data.initialMessages = character.initialMessages.fromJson()
-        this.data.persona = character.personaFiltered
-        this.data.thumbnail = character.details?.thumbnail || ``
-        this.data.memories = character.details.memories || []
-        this.data.hidden = character.details.hidden || false
-        
-        this.$.query(`[data-bind="thumbnail"]`).placeholder = character.thumbnail
+        if (character)
+        {
+            this.data.name = character.name
+            this.data.description = character.description
+            this.data.imagePrompt = character.imagePrompt
+            this.data.initialMessages = character.initialMessages.fromJson()
+            this.data.persona = character.personaFiltered
+            this.data.thumbnail = character.details?.thumbnail || ``
+            this.data.memories = character.details.memories || []
+            this.data.hidden = character.details.hidden || false
+            
+            this.$.query(`[data-bind="thumbnail"]`).placeholder = character.thumbnail
+        }
         
         this.data.transferTo(this.$content)
     }
@@ -2238,9 +2285,12 @@ class CharacterDialog extends Dialog
         
         if (body.id)
         {
-            this.#chat.character = await fetchAsync(`api/characters/${body.id}`).then(x => x.json())
+            this.#chat.character = await fetchAsync(`api/characters/${body.id}`).thenJson(null)
             App.instance.stopLoading()
-            await this.#chat.refreshChatAsync()
+            
+            if (this.#chat.character)
+                await this.#chat.refreshChatAsync()
+            
             return
         }
         
@@ -2608,6 +2658,19 @@ class AppearanceResetDialog extends Dialog
         App.instance.cssRoot = []
         App.instance.applyCssRoot()
         App.instance.dialogs.appearance.onOpenAsync()
+    }
+}
+
+class ErrorDialog extends Dialog
+{
+    get name()
+    {
+        return `error`
+    }
+    
+    onOpenAsync(userData)
+    {
+        this.$.query(`.content`).setHtml(userData.text)
     }
 }
 
