@@ -1,0 +1,144 @@
+{
+	"files": [
+		{
+			"path": "wwwroot/css/style.css",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 0,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "wwwroot/index.html",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 0,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "wwwroot/js/script.js",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 4,
+					"column": 0,
+					"label": "localStorage"
+				},
+				{
+					"line": 28,
+					"column": 0,
+					"label": "cssRootDefault"
+				},
+				{
+					"line": 354,
+					"column": 1,
+					"label": "EventTarget.prototype"
+				},
+				{
+					"line": 680,
+					"column": 0,
+					"label": "Promise.prototype"
+				},
+				{
+					"line": 705,
+					"column": 0,
+					"label": "String.prototype"
+				},
+				{
+					"line": 716,
+					"column": 0,
+					"label": "Array.prototype"
+				},
+				{
+					"line": 747,
+					"column": 0,
+					"label": "Object.prototype"
+				},
+				{
+					"line": 999,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 1044,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 1611,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 1626,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 1678,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 1686,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 1827,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 2105,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 2244,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 2265,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 2397,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 2494,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 2570,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 2692,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 2716,
+					"column": 0,
+					"label": ""
+				}
+			]
+		}
+	]
+}
