@@ -5,8 +5,8 @@
         <meta charset="UTF-8">
         <title></title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-        <link rel="stylesheet" href="css/style.css?v=2023.09.22-1320">
-        <script src="js/script.js?v=2023.09.22-1320" defer></script>
+        <link rel="stylesheet" href="css/style.css?v=2023.09.25-0135">
+        <script src="js/script.js?v=2023.09.25-0135" defer></script>
     </head>
     
     <body class="display-none">
@@ -64,7 +64,7 @@
                     <input data-bind="search" class="flex-1" placeholder="Search">
                     <button data-action="pages.characters.openMenu" class="menu-button"></button>
                     <div class="overlay"></div>
-                    <div class="menu">
+                    <div class="menu page-menu">
                         <div data-action="gotoPageAsync" data-target="home">Back to Home</div>
                         <div class="separator"></div>
                         <div data-action="openDialogAsync" data-target="character">Create Character</div>
@@ -100,6 +100,7 @@
                         <div class="image-wrapper">
                             <div class="image nsfw-content small"></div>
                         </div>
+                        <div class="interaction-icon"></div>
                     </div>
                 </div>
                 <div class="loader"></div>
@@ -110,9 +111,10 @@
                         <div style="position: relative; pointer-events: none; ">Send</div>
                     </button>
                     <button data-action="pages.chat.openMenu" class="menu-button"></button>
+                    
                     <div class="overlay"></div>
-                    <div class="menu">
-                        <div data-action="openDialogAsync" data-target="character">Edit Character</div>
+                    <div class="menu page-menu">
+                        <div data-action="openDialogAsync" data-target="character" class="edit-character">Edit Character</div>
                         <div class="separator"></div>
                         <div data-action="openDialogAsync" data-target="settings">Edit Settings</div>
                         <div data-action="openDialogAsync" data-target="appearance">Change Appearance</div>
@@ -120,6 +122,17 @@
                         <div data-action="pages.chat.refreshChatAsync">Refresh Chat</div>
                         <div data-action="pages.chat.clearChatAsync">Clear Chat</div>
                         <div data-action="gotoPageAsync" data-target="characters">Leave Chat</div>
+                    </div>
+                    
+                    <div class="overlay message-menu-overlay"></div>
+                    <div class="menu message-menu">
+                        <div class="menu-button" data-edit>Edit</div>
+                        <div class="menu-button" data-delete>Delete</div>
+                        <div class="separator"></div>
+                        <div class="menu-button" data-view-image>View Image</div>
+                        <div class="separator"></div>
+                        <div class="menu-button" data-regenerate-text>Regenerate Text</div>
+                        <div class="menu-button" data-generate-image>Generate Image</div>
                     </div>
                 </div>
             </div>
@@ -151,7 +164,7 @@
                     <div class="flex-1"></div>
                     <button data-action="pages.imageGenerator.openMenu" class="menu-button"></button>
                     <div class="overlay"></div>
-                    <div class="menu">
+                    <div class="menu page-menu">
                         <div data-action="gotoPageAsync" data-target="home">Back to Home</div>
                         <div class="separator"></div>
                         <div data-action="openDialogAsync" data-target="settings">Edit Settings</div>
@@ -246,11 +259,6 @@
                         <div class="title">Common</div>
                         <div class="content">
                             <textarea data-bind="content"></textarea>
-                            <div>
-                                <button data-action="dialogs.message.generateMessage" style="display: block; margin-inline: auto; ">
-                                    Regenerate Message
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div class="tab">
@@ -270,7 +278,6 @@
             </div>
             <div class="bottom">
                 <button class="ripple" data-action="dialogs.message.saveAsync">Save</button>
-                <button class="ripple" data-action="dialogs.message.deleteAsync">Delete</button>
                 <button class="ripple" data-action="dialogs.message.cancel">Cancel</button>
             </div>
         </div>

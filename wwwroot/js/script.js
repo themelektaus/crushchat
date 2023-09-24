@@ -1294,6 +1294,7 @@ class App
                     return
                 
                 this.closeAllDialogs()
+                App.instance.deselectAll()
             })
         })
         
@@ -1330,19 +1331,20 @@ class App
         
         for (const name in this.pages)
         {
-            const page = this.pages[name]
-            
-            if (page.$menu && !page.$menu.hasClass(`hidden`))
+            for (const menu of this.pages[name].menus)
             {
-                result = true
-                page.$menu.addClass(`hidden`)
-            }
-            
-            if (page.$menuOverlay)
-            {
-                page.$menuOverlay.addClass(`hidden`)
-                if (onProcessOverlay)
-                    onProcessOverlay(page.$menuOverlay)
+                if (!menu.$.hasClass(`hidden`))
+                {
+                    result = true
+                    menu.$.addClass(`hidden`)
+                }
+                
+                if (menu.$overlay)
+                {
+                    menu.$overlay.addClass(`hidden`)
+                    if (onProcessOverlay)
+                        onProcessOverlay(menu.$overlay)
+                }
             }
         }
         
@@ -1598,6 +1600,11 @@ class App
         
         return await fetchAsync(`api/characters${query.toQueryString()}`).thenJson([])
     }
+    
+    deselectAll()
+    {
+        queryAll(`.message`).forEach($ => $.removeClass(`selected`))
+    }
 }
 
 
@@ -1628,14 +1635,17 @@ class Page extends AppNode
     {
         super()
         
+        this.menus = []
+        
         this.$bottombar = this.$.query(`.bottombar`)
         if (!this.$bottombar)
             return
         
-        this.$menu = this.$bottombar.query(`.menu`)
-        const $prev = this.$menu.previousElementSibling
-        if ($prev.hasClass(`overlay`))
-            this.$menuOverlay = $prev
+        this.$bottombar.queryAll(`.menu`).forEach($ =>
+        {
+            const $prev = $.previousElementSibling
+            this.menus.push({ $: $, $overlay: $prev.hasClass(`overlay`) ? $prev : null })
+        })
         
         const $next = this.$.nextElementSibling
         if ($next)
@@ -1646,14 +1656,23 @@ class Page extends AppNode
         this.$bottombar.addClass(`hidden`)
     }
     
-    openMenu()
+    openMenu($sender, options)
     {
         App.instance.closeAllMenus()
         
-        this.$menu.removeClass(`hidden`)
+        options ??= { }
+        options.$target ??= this.menus[0].$
         
-        if (this.$menuOverlay)
-            this.$menuOverlay.removeClass(`hidden`)
+        for (const menu of this.menus)
+        {
+            if (options.$target != menu.$)
+                continue
+            
+            menu.$.removeClass(`hidden`)
+            
+            if (menu.$overlay)
+                menu.$overlay.removeClass(`hidden`)
+        }
     }
 }
 
@@ -1826,6 +1845,17 @@ class ChatPage extends Page
         this.$loader = this.$.query(`.loader`)
         
         this.$sendMessageButton = this.$bottombar.query(`[data-action="pages.chat.sendMessageAsync"]`)
+        
+        this.$bottombar.query(`.message-menu-overlay`)?.onClick(() =>
+        {
+            App.instance.deselectAll()
+        })
+        
+        this.$messageMenu = this.$bottombar.query(`.message-menu`)
+        this.$messageMenu.queryAll(`.menu-button`).forEach($ =>
+        {
+            $.onClick(async () => await App.instance.closeAllMenus())
+        })
     }
     
     async onUnloadAsync()
@@ -1849,7 +1879,7 @@ class ChatPage extends Page
     
     async onPostLoadAsync()
     {
-        await this.refreshAsync({ scrollDown: true })
+        await this.refreshAsync({ scrollDown: 2 })
         
         enableInput()
         
@@ -1925,15 +1955,76 @@ class ChatPage extends Page
             $message.query(`.original`).setHtml(message.content).removeIf(!showOriginalMessage || !message.contentTranslated)
             $message.query(`.image`).setBackgroundImage(image).parentNode.removeIf(!image)
             
-            $message.onClick(async () =>
+            $message.onClick(async ($sender, e) =>
             {
                 if ($message.hasClass(`disabled`))
                     return
                 
-                await App.instance.openDialogAsync(`message`, {
-                    character: this.character,
-                    message: message
-                })
+                $message.addClass(`selected`)
+                
+                this.$messageMenu.style.left = `${Math.max(10, e.clientX - 20)}px`
+                this.$messageMenu.style.top = `${Math.max(10, e.clientY - 30)}px`
+                
+                //const messageRect = $message.getBoundingClientRect()
+                const menuRect = this.$messageMenu.getBoundingClientRect()
+                //this.$messageMenu.style.left = `${messageRect.right - menuRect.width}px`
+                //this.$messageMenu.style.top = `${messageRect.bottom}px`
+                
+                this.$messageMenu.style.left = `calc(${this.$messageMenu.style.left} - ${Math.max(0, menuRect.left + menuRect.width * 2 - window.innerWidth + 10)}px)`
+                this.$messageMenu.style.top = `calc(${this.$messageMenu.style.top} - ${Math.max(0, menuRect.top + menuRect.height * 10 - window.innerHeight + 10)}px)`
+                
+                this.$messageMenu.query(`[data-edit]`).onclick = async () =>
+                {
+                    await App.instance.openDialogAsync(`message`, {
+                        character: this.character,
+                        message: message
+                    })
+                }
+                
+                this.$messageMenu.query(`[data-delete]`).onclick = async () =>
+                {
+                    await App.instance.dialogs.message.deleteAsync(null, {
+                        characterId: this.character.id,
+                        messageIndex: message.index
+                    })
+                }
+                
+                this.$messageMenu.query(`[data-delete] + div`)
+                    .toggleClass(`display-none`, isYou && !message.image)
+                
+                this.$messageMenu.query(`[data-view-image] + div`)
+                    .toggleClass(`display-none`, isYou || !message.image)
+                
+                this.$messageMenu.query(`[data-view-image]`)
+                    .toggleClass(`display-none`, !message.image)
+                    .onclick = async () =>
+                    {
+                        App.instance.deselectAll()
+                        window.open(message.image)
+                    }
+                
+                this.$messageMenu.query(`[data-regenerate-text]`)
+                    .toggleClass(`display-none`, isYou)
+                    .onclick = async () =>
+                    {
+                        await App.instance.dialogs.message.generateMessageAsync(null, {
+                            characterId: this.character.id,
+                            messageIndex: message.index
+                        })
+                    }
+                
+                this.$messageMenu.query(`[data-generate-image]`)
+                    .toggleClass(`display-none`, isYou)
+                    .onclick = async () =>
+                    {
+                        await App.instance.dialogs.message.generateImageAsync(null, {
+                            characterId: this.character.id,
+                            messageIndex: message.index,
+                            imagePrompt: ``
+                        })
+                    }
+                
+                this.openMenu(null, { $target: this.$messageMenu })
             })
             
             this.$messages.add($message)
@@ -2168,6 +2259,7 @@ class Dialog extends AppNode
     cancel()
     {
         App.instance.closeAllDialogs()
+        App.instance.deselectAll()
     }
 }
 
@@ -2207,14 +2299,14 @@ class CharacterDialog extends Dialog
         
         if (!this.#chat.character)
         {
-            this.$.query(`.title`).setHtml(`Create Character`)
+            this.$.query(`.title`).removeClass(`edit-character`)
             this.$.query(`.field:has([data-bind="thumbnail"])`).addClass(`display-none`).addClass(`important`)
             this.$.query(`.field:has([data-bind="memories"])`).addClass(`display-none`).addClass(`important`)
             this.$.query(`[data-action="dialogs.character.deleteAsync"]`).addClass(`display-none`)
             return
         }
         
-        this.$.query(`.title`).setHtml(`Edit Character`)
+        this.$.query(`.title`).addClass(`edit-character`)
         this.$.query(`.field:has([data-bind="thumbnail"])`).removeClass(`display-none`).removeClass(`important`)
         this.$.query(`.field:has([data-bind="memories"])`).removeClass(`display-none`).removeClass(`important`)
         this.$.query(`[data-action="dialogs.character.deleteAsync"]`).removeClass(`display-none`)
@@ -2313,7 +2405,6 @@ class MessageDialog extends Dialog
     onOpenAsync(userData)
     {
         this.characterId = userData.character.id
-        this.messageId = userData.message.id
         this.messageIndex = userData.message.index
         this.imagePrompt = ``
         this.content = userData.message.content
@@ -2321,12 +2412,6 @@ class MessageDialog extends Dialog
         this.transferTo(this.$content)
         
         this.$.query(`[data-bind="imagePrompt"]`).placeholder = userData.character.imagePrompt || "Enter image prompt(s)"
-        
-        const isYou = userData.message.role == `You`
-        
-        this.$.query(`[data-action="dialogs.message.generateMessage"]`).parentNode
-            .toggleClass(`display-none`, isYou)
-            .toggleClass(`important`, isYou)
         
         const $image = this.$content.query(`.image`)
         
@@ -2344,27 +2429,36 @@ class MessageDialog extends Dialog
         App.instance.stopLoading()
     }
     
-    async generateMessage()
+    async generateMessageAsync($sender, options)
     {
-        const url = `api/characters/${this.characterId}/messages/generate/${this.messageIndex}`
+        options ??= { }
+        options.characterId ??= this.characterId
+        options.messageIndex ??= this.messageIndex
+        
+        const url = `api/characters/${options.characterId}/messages/generate/${options.messageIndex}`
         await this.applyAsync(async () => await fetchAsync(url))
     }
     
-    async generateImageAsync()
+    async generateImageAsync($sender, options)
     {
         this.$content.transferTo(this)
         
-        let options = undefined
+        options ??= { }
+        options.characterId ??= this.characterId
+        options.messageIndex ??= this.messageIndex
+        options.imagePrompt ??= this.imagePrompt
+        
+        let requestOptions = undefined
         
         if (this.imagePrompt)
         {
-            options = { }
-            options.headers = { }
-            options.headers['X-Prompt'] = this.imagePrompt
+            requestOptions = { }
+            requestOptions.headers = { }
+            requestOptions.headers['X-Prompt'] = this.imagePrompt
         }
         
-        const url = `api/characters/${this.characterId}/messages/generate-image/${this.messageIndex}`
-        await this.applyAsync(async () => await fetchAsync(url, options))
+        const url = `api/characters/${options.characterId}/messages/generate-image/${options.messageIndex}`
+        await this.applyAsync(async () => await fetchAsync(url, requestOptions))
     }
     
     async deleteImageAsync()
@@ -2387,9 +2481,13 @@ class MessageDialog extends Dialog
         )
     }
     
-    async deleteAsync()
+    async deleteAsync($sender, options)
     {
-        const url = `api/characters/${this.characterId}/messages/delete/${this.messageIndex}`
+        options ??= { }
+        options.characterId ??= this.characterId
+        options.messageIndex ??= this.messageIndex
+        
+        const url = `api/characters/${options.characterId}/messages/delete/${options.messageIndex}`
         await this.applyAsync(async () => await fetchAsync(url))
     }
 }
