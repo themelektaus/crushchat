@@ -1962,17 +1962,6 @@ class ChatPage extends Page
                 
                 $message.addClass(`selected`)
                 
-                this.$messageMenu.style.left = `${Math.max(10, e.clientX - 20)}px`
-                this.$messageMenu.style.top = `${Math.max(10, e.clientY - 30)}px`
-                
-                //const messageRect = $message.getBoundingClientRect()
-                const menuRect = this.$messageMenu.getBoundingClientRect()
-                //this.$messageMenu.style.left = `${messageRect.right - menuRect.width}px`
-                //this.$messageMenu.style.top = `${messageRect.bottom}px`
-                
-                this.$messageMenu.style.left = `calc(${this.$messageMenu.style.left} - ${Math.max(0, menuRect.left + menuRect.width * 2 - window.innerWidth + 10)}px)`
-                this.$messageMenu.style.top = `calc(${this.$messageMenu.style.top} - ${Math.max(0, menuRect.top + menuRect.height * 10 - window.innerHeight + 10)}px)`
-                
                 this.$messageMenu.query(`[data-edit]`).onclick = async () =>
                 {
                     await App.instance.openDialogAsync(`message`, {
@@ -2023,6 +2012,14 @@ class ChatPage extends Page
                             imagePrompt: ``
                         })
                     }
+                
+                this.$messageMenu.style.left = `${Math.max(10, e.clientX - 20)}px`
+                this.$messageMenu.style.top = `${Math.max(10, e.clientY - 30)}px`
+                
+                const menuRect = this.$messageMenu.getBoundingClientRect()
+                
+                this.$messageMenu.style.left = `calc(${this.$messageMenu.style.left} - ${Math.max(0, menuRect.left + menuRect.width * 2 - window.innerWidth + 10)}px)`
+                this.$messageMenu.style.top = `calc(${this.$messageMenu.style.top} - ${Math.max(0, menuRect.top + menuRect.height * 10 - window.innerHeight + 10)}px)`
                 
                 this.openMenu(null, { $target: this.$messageMenu })
             })
