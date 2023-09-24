@@ -366,11 +366,11 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
     {
         prompt = _prompt.ToString().Replace("\"", "");
         paidPrompt = prompt + (client.nsfw ? "" : ",sfw");
-        prompt += (client.nsfw ? "" : ", sfw");
+        prompt += client.nsfw ? "" : ", sfw";
     }
     else
     {
-        paidPrompt = $"\"{message.content.Replace("\"", "")}\",{(client.nsfw ? "" : "sfw,")}detailed,masterpiece";
+        paidPrompt = $"\"{message.content.Replace("\"", "")}\",{(client.nsfw ? "" : "sfw,")}{string.Join(',', character.imagePrompt.Split(',').Select(x => x.Trim()).Where(x => x != string.Empty))}detailed,masterpiece";
         prompt = $"\"{message.content.Replace("\"", "").Replace(',', '-')}\", {(client.nsfw ? "" : "sfw, ")}{character.imagePrompt}";
     }
 
