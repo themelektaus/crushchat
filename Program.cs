@@ -593,6 +593,7 @@ app.MapGet("/api/characters/{characterId}/delete", async (HttpRequest request, s
 #endregion
 
 
+
 #region /api/translations
 
 app.MapGet("/api/translations", () =>
@@ -615,6 +616,8 @@ app.MapGet("/api/translations", () =>
 });
 
 #endregion
+
+
 
 #region /api/translations/{client}/{language}
 
