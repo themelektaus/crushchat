@@ -173,7 +173,7 @@ input[type="checkbox"] {
 .loader {
     width: 100px;
     aspect-ratio: 1;
-    background: url(../res/loading.svg) no-repeat;
+    background: url(../res/loading.svg?v=2) no-repeat;
     background-size: 100%;
 }
 

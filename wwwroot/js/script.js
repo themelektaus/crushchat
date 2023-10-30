@@ -2117,6 +2117,14 @@ class ImageGeneratorPage extends Page
         this.$image = this.$content.query(`.image`)
     }
     
+    #reset()
+    {
+        this.$historyContent.queryAll(`[data-id]`)
+            .forEach($ => App.instance.imageLoader.unobserve($))
+        
+        this.$historyContent.clearHtml()
+    }
+    
     async onLoadAsync()
     {
         await this.refreshAsync()
@@ -2135,7 +2143,7 @@ class ImageGeneratorPage extends Page
         this.prompt = ``
         this.transferTo(this.$content)
         
-        this.$historyContent.clearHtml()
+        this.#reset()
         
         const images = await fetchAsync(`api/images`).thenJson([])
         
@@ -2152,7 +2160,8 @@ class ImageGeneratorPage extends Page
                 .addClass(`tiny`)
             
             $item.dataset.id = image.id
-            $item.setBackgroundImage(image.url)
+            $item.dataset.image = image.url
+            App.instance.imageLoader.observe($item)
             
             $item.onClick(() =>
             {
@@ -2197,13 +2206,17 @@ class ImageGeneratorPage extends Page
         this.$image.setBackgroundImage(``)
         
         const query = { realistic: this.isRealistic }
-        await fetchAsync(`api/generate-image${query.toQueryString()}`, options)
         
-        await this.refreshAsync()
+        const ok = await fetchAsync(`api/generate-image${query.toQueryString()}`, options)
+            .then(x => x.ok)
+        
+        if (ok)
+            await this.refreshAsync()
         
         App.instance.stopLoading()
         
-        this.loadImage(this.firstImage)
+        if (ok)
+            this.loadImage(this.firstImage)
     }
     
     async deleteAsync()
@@ -2224,7 +2237,7 @@ class ImageGeneratorPage extends Page
         if (permission.state == "denied")
             return
         
-        await navigator.clipboard.writeText(`${location.origin}/api/images/${this.userId}/${this.userFolder}/${this.imageId}.png`)
+        await navigator.clipboard.writeText(`${location.origin}/api/images/${this.userId}/${this.userFolder}/${this.imageId}.jpg`)
     }
     
     async copyRelativeUrlAsync()
@@ -2233,7 +2246,7 @@ class ImageGeneratorPage extends Page
         if (permission.state == "denied")
             return
         
-        await navigator.clipboard.writeText(`/api/images/${this.userId}/${this.userFolder}/${this.imageId}.png`)
+        await navigator.clipboard.writeText(`/api/images/${this.userId}/${this.userFolder}/${this.imageId}.jpg`)
     }
 }
 

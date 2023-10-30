@@ -32,10 +32,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    
-    <_WebToolingArtifacts Remove="Properties\PublishProfiles\Linux.pubxml" />
-    <_WebToolingArtifacts Remove="Properties\PublishProfiles\Windows.pubxml" />
-    
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.6" />
   </ItemGroup>
   
 </Project>

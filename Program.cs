@@ -1,6 +1,7 @@
 using CrushChatApi;
 
 using Microsoft.AspNetCore.Mvc;
+using System.Drawing;
 
 
 
@@ -445,6 +446,9 @@ app.MapGet("/api/generate-image", async (HttpRequest request) =>
         prompt = prompt
     });
 
+    if (info is null)
+        return Results.StatusCode(StatusCodes.Status429TooManyRequests);
+
     return Results.Text(info.url);
 });
 
@@ -476,14 +480,46 @@ app.MapGet("/api/images", (HttpRequest request) =>
 
 #region GET /api/images/{id}.png
 
-app.MapGet("/api/images/{id}", FindImagePng);
-app.MapGet("/api/images/{id}.png", FindImagePng);
-app.MapGet("/api/images/{_}/{id}", (string _, string id) => FindImagePng(id));
-app.MapGet("/api/images/{_}/{id}.png", (string _, string id) => FindImagePng(id));
-app.MapGet("/api/images/{userId}/{userFolder}/{id}", GetImagePng);
-app.MapGet("/api/images/{userId}/{userFolder}/{id}.png", GetImagePng);
+app.MapGet("/api/images/{id}", FindImage);
+app.MapGet("/api/images/{id}.jpg", FindJpg);
+app.MapGet("/api/images/{id}.png", FindImage);
+app.MapGet("/api/images/{_}/{id}", (string _, string id) => FindJpg(id));
+app.MapGet("/api/images/{_}/{id}.jpg", (string _, string id) => FindJpg(id));
+app.MapGet("/api/images/{_}/{id}.png", (string _, string id) => FindImage(id));
+app.MapGet("/api/images/{userId}/{userFolder}/{id}", GetJpg);
+app.MapGet("/api/images/{userId}/{userFolder}/{id}.jpg", GetJpg);
+app.MapGet("/api/images/{userId}/{userFolder}/{id}.png", GetImage);
 
-static IResult FindImagePng(string id)
+static IResult FindJpg(string id)
+{
+    var file = Utils.FindImageFile(id);
+    ConvertToJpg(in file, id, out var jpg);
+    return Results.File(jpg.FullName, contentType: "image/jpg");
+}
+
+static IResult GetJpg(HttpRequest request, string userId, string userFolder, string id)
+{
+    var file = Utils.GetImageFile(userId, userFolder, id);
+    ConvertToJpg(in file, id, out var jpg);
+    return Results.File(jpg.FullName, contentType: "image/jpg");
+}
+
+static void ConvertToJpg(in FileInfo file, string id, out FileInfo jpg)
+{
+    jpg = new FileInfo($"{file.FullName[..^3]}jpg");
+    if (jpg.Exists)
+        return;
+
+    lock (Utils.Lock(jpg.FullName))
+    {
+        using var bitmap = ImageUtils.CreateBitmap(file);
+        using var data = bitmap.Encode(SkiaSharp.SKEncodedImageFormat.Jpeg, 80);
+        using var stream = jpg.OpenWrite();
+        data.SaveTo(stream);
+    }
+}
+
+static IResult FindImage(string id)
 {
     var file = Utils.FindImageFile(id);
 
@@ -495,8 +531,10 @@ static IResult FindImagePng(string id)
     return Results.File(content, contentType: "image/png");
 }
 
-static IResult GetImagePng(HttpRequest request, string userId, string userFolder, string id)
+static IResult GetImage(HttpRequest request, string userId, string userFolder, string id)
 {
+    var file = Utils.GetImageFile(userId, userFolder, id);
+
     if (request.GetQueryBoolean("delete", false))
     {
         using var client = new CrushChatClient(request);
@@ -506,12 +544,12 @@ static IResult GetImagePng(HttpRequest request, string userId, string userFolder
         }
 
         Utils.GetImageInfoFile(userId, userFolder, id).TryDelete();
-        Utils.GetImageFile(userId, userFolder, id).TryDelete();
+        
+        file.TryDelete();
+        new FileInfo($"{file.FullName[..^3]}jpg").TryDelete();
 
         return Results.Ok();
     }
-
-    var file = Utils.GetImageFile(userId, userFolder, id);
 
     byte[] content;
 

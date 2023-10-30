@@ -85,17 +85,20 @@ public class CrushChatClient : IDisposable
         }
 
         var showAll = false;
-        if (request.Headers.TryGetValue("X-Additional-Secret", out var additionalSecret))
-        {
-            if (!string.IsNullOrEmpty(additionalSecret))
-            {
-                if (File.Exists(".additionalSecret"))
-                {
-                    string _additionalSecret;
-                    
-                    lock (Utils.Lock(".additionalSecret"))
-                        _additionalSecret = File.ReadAllText(".additionalSecret");
 
+        string _additionalSecret = default;
+        if (File.Exists(".additionalSecret"))
+        {
+            lock (Utils.Lock(".additionalSecret"))
+                _additionalSecret = File.ReadAllText(".additionalSecret");
+        }
+
+        if (!string.IsNullOrEmpty(_additionalSecret))
+        {
+            if (request.Headers.TryGetValue("X-Additional-Secret", out var additionalSecret))
+            {
+                if (!string.IsNullOrEmpty(additionalSecret))
+                {
                     if (_additionalSecret == additionalSecret)
                         showAll = true;
                 }
@@ -107,6 +110,9 @@ public class CrushChatClient : IDisposable
             {
                 if (!x.isPrivate)
                     return showAll;
+
+                if (_additionalSecret == userFolder)
+                    return true;
 
                 if (Utils.GetCharacterFile(this, x.id).Exists)
                     return true;

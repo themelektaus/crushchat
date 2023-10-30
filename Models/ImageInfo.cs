@@ -14,7 +14,7 @@ public class ImageInfo
         this.userId = userId;
         this.userFolder = userFolder;
         this.id = id;
-        url = $"/api/images/{id}.png";
+        url = $"/api/images/{id}.jpg";
         return this;
     }
 }
