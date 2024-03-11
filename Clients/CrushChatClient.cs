@@ -316,7 +316,7 @@ public class CrushChatClient : IDisposable
 
     public async Task<MessageRequest.Response> GenerateResponseAsync(MessageRequest messageRequest)
     {
-        using var message = CreateMessage(HttpMethod.Post, "/api/generate-response-v2");
+        using var message = CreateMessage(HttpMethod.Post, "/api/generate-response-v6");
 
         message.Content = new StringContent(
             messageRequest.ToJson(),

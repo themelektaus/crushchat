@@ -379,7 +379,7 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
     {
         description = character.imagePrompt,
         isRealistic = false,
-        justPrompt = true,
+        justPrompt = false,
         paidGeneration = true,
         paidPrompt = paidPrompt,
         prompt = prompt
@@ -440,7 +440,7 @@ app.MapGet("/api/generate-image", async (HttpRequest request) =>
     {
         description = string.Empty,
         isRealistic = request.GetQueryBoolean("realistic", false),
-        justPrompt = true,
+        justPrompt = false,
         paidGeneration = true,
         paidPrompt = prompt,
         prompt = prompt
