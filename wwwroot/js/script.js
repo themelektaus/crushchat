@@ -32,6 +32,35 @@ const sat = localStorage.nsfw == "true" ? 0.9 : 0.05
 let cssRootDefault =
 [
     {
+        category: "Font",
+        values: [
+            {
+                name: "Family",
+                type: "select",
+                key: "--font-family",
+                value: `rubik`,
+                options: [
+                    [ `serif`, `Serif` ],
+                    [ `sans-serif`, `Sans Serif` ],
+                    [ `montserrat`, `Montserrat` ],
+                    [ `rubik`, `Rubik` ],
+                    [ `dejavu`, `DejaVu` ]
+                ]
+            },
+            {
+                name: "Size",
+                type: "select",
+                key: "--font-size",
+                value: `1em`,
+                options: [
+                    [ `.95em`, `small` ],
+                    [ `1em`, `normal` ],
+                    [ `1.075em`, `big` ]
+                ]
+            }
+        ]
+    },
+    {
         category: "Body",
         values: [
             {
@@ -1513,7 +1542,11 @@ class App
                 
                 let _value = value.value
                 
-                if (value.type == `color`)
+                if (value.type == `select`)
+                {
+                    _value = value.value
+                }
+                else if (value.type == `color`)
                 {   
                     if (value.alpha !== undefined)
                     {
@@ -2605,6 +2638,30 @@ class AppearanceDialog extends Dialog
             {
                 const $field = $content.create(`div`).addClass(`field`)
                 $field.create(`label`).setHtml(value.name)
+                
+                if (value.type == `select`)
+                {
+                    $field.style.flexDirection = `row`
+                    
+                    $field.query(`label`).style.width = `unset`
+                    
+                    const $select = $field.create(`select`)
+                    $select.style.marginLeft = `.5rem`
+                    
+                    for (const option of value.options)
+                    {
+                        const $option = $select.create(`option`)
+                        $option.value = option[0]
+                        $option.innerText = option[1]
+                    }
+                    $select.value = value.value
+                    $select.on(`change`, () =>
+                    {
+                        value.value = $select.value
+                        App.instance.applyCssRoot()
+                    })
+                    continue
+                }
                 
                 if (value.type == `color`)
                 {

@@ -55,7 +55,7 @@ public class CrushChatClient : IDisposable
         return success ? await response.Content.ReadFromJsonAsync<T>() : default;
     }
 
-    public async Task<List<Character>> GetCharactersAsync()
+    public async Task<List<Character>> GetCharactersAsync(bool forceCache = false)
     {
         if (!isUser)
             return new();
@@ -122,7 +122,7 @@ public class CrushChatClient : IDisposable
 
         var cachedCharacters = Filtered(cachedCharactersEnumerable).ToList();
 
-        if (request.GetQueryBoolean("cache", true))
+        if (forceCache || request.GetQueryBoolean("cache", true))
         {
             characters = cachedCharacters;
         }
@@ -161,7 +161,7 @@ public class CrushChatClient : IDisposable
 
                     if (found1.Count == 0 && found2.Count == 0)
                         break;
-                    
+
                     await Task.Delay(TimeSpan.FromSeconds(3));
                 }
 
@@ -233,7 +233,8 @@ public class CrushChatClient : IDisposable
             using var translationClient = ITranslationClient.Create(request);
             if (translationClient is not null)
             {
-                var _character = (await GetCharactersAsync()).FirstOrDefault(x => x.id == characterId);
+
+                var _character = (await GetCharactersAsync(forceCache: true)).FirstOrDefault(x => x.id == characterId);
 
                 var text = new List<string>() {
                     _character.description.Trim(),

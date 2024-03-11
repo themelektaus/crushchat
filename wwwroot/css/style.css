@@ -18,10 +18,9 @@ html {
 
 * { -webkit-tap-highlight-color: transparent; }
 
-@font-face {
-    font-family: custom;
-    src: url(../fonts/montserrat.ttf);
-}
+@font-face { font-family: montserrat; src: url(../fonts/montserrat.ttf); }
+@font-face { font-family: rubik;      src: url(../fonts/rubik.ttf);      }
+@font-face { font-family: dejavu;     src: url(../fonts/dejavu.ttf);     }
 
 body {
     color: var(--body__text-color);
@@ -68,10 +67,10 @@ button > .ripple {
 }
 
 body, button, input, textarea, select {
-    font-family: custom;
-    outline: none;
-    font-size: 1em;
+    font-family: var(--font-family);
+    font-size: var(--font-size);
     line-height: 1.5;
+    outline: none;
 }
 
 button {
@@ -370,15 +369,16 @@ input[type="checkbox"] {
 }
 
 [data-page="home"] > .icon {
-    width: 10rem;
+    width: 12rem;
     max-width: 100%;
     aspect-ratio: 1;
     border-radius: 50%;
-    background-color: var(--button__background-color__active);
     background-image: url(../favicon.ico);
     background-size: calc(100% - .5rem);
     background-position: center;
     background-repeat: no-repeat;
+    margin-bottom: 1.5rem;
+    filter: saturate(.675);
 }
 
 [data-page="home"] > h2 {
