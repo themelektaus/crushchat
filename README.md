@@ -12,7 +12,7 @@
 
 ## Demo
 
-- Visit https://crushchat.steinalt.online to have a first look.
+- Visit https://crushchat.nockal.com to have a first look.
 
 ![](https://github.com/themelektaus/crushchat/blob/main/Screenshots/Screenshot%202023-09-01%20X.png)
 
