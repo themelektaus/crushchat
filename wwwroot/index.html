@@ -213,7 +213,8 @@
                             <div class="field">
                                 <label>Thumbnail</label>
                                 <input data-bind="thumbnail" type="text">
-                                <button class="ripple" data-action="dialogs.character.regenerateThumbnailAsync" style="margin: .25rem 0 0 .5rem; ">Regenerate</button>
+                                <button class="ripple" data-action="dialogs.character.openThumbnail"></button>
+                                <button class="ripple" data-action="dialogs.character.regenerateThumbnailAsync">Regenerate</button>
                             </div>
                             <div class="field">
                                 <label>Initial Messages</label>
@@ -446,9 +447,6 @@
                 <button class="ripple" data-action="dialogs.error.cancel">Close</button>
             </div>
         </div>
-        
-        
-        <div id="tooltip"></div>
         
     </body>
     

@@ -7,7 +7,7 @@ public static class ImageUtils
     public static SKBitmap CreateBitmap(FileInfo file, int? size = null)
     {
         using var stream = file.OpenRead();
-        
+
         var bitmap = SKBitmap.Decode(stream);
 
         if (size.HasValue)

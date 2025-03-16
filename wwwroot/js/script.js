@@ -2,7 +2,7 @@
 
 
 
-(function()
+function loadDefaults()
 {
     const items = {
         language: "EN",
@@ -22,357 +22,375 @@
     for (const key in items)
         if (localStorage.getItem(key) === null)
             localStorage.setItem(key, items[key])
-})()
+}
 
-
-
-const hue = localStorage.nsfw == "true" ? 330 : 240
-const sat = localStorage.nsfw == "true" ? 0.9 : 0.05
-
-let cssRootDefault =
-[
-    {
-        category: "Font",
-        values: [
-            {
-                name: "Family",
-                type: "select",
-                key: "--font-family",
-                value: `rubik`,
-                options: [
-                    [ `serif`, `Serif` ],
-                    [ `sans-serif`, `Sans Serif` ],
-                    [ `montserrat`, `Montserrat` ],
-                    [ `rubik`, `Rubik` ],
-                    [ `dejavu`, `DejaVu` ]
-                ]
-            },
-            {
-                name: "Size",
-                type: "select",
-                key: "--font-size",
-                value: `1em`,
-                options: [
-                    [ `.95em`, `small` ],
-                    [ `1em`, `normal` ],
-                    [ `1.075em`, `big` ]
-                ]
-            }
-        ]
-    },
-    {
-        category: "Body",
-        values: [
-            {
-                name: "Text",
-                type: "hsl",
-                key: "--body__text-color",
-                value: [ 0, 0, 100 ]
-            },
-            {
-                name: "Background",
-                type: "hsl",
-                key: "--body__background-color",
-                value: [ hue, 50 * sat, 10 ]
-            },
-            {
-                name: "Tooltip (Background)",
-                type: "hsla",
-                key: "--tooltip__background-color",
-                value: [ 0, 0, 0, 1 ]
-            }
-        ]
-    },
-    {
-        category: "Main",
-        values: [
-            {
-                name: "Background",
-                type: "hsla",
-                key: "--main__background-color",
-                value: [ 0, 0, 0, 0 ]
-            }
-        ]
-    },
-    {
-        category: "Button",
-        values: [
-            {
-                name: "Text",
-                type: "hsl",
-                key: "--button__text-color",
-                value: [ 0, 0, 100 ]
-            },
-            {
-                name: "Text (Hover)",
-                type: "hsl",
-                key: "--button__text-color__hover",
-                value: [ 0, 0, 100 ]
-            },
-            {
-                name: "Text (Active)",
-                type: "hsl",
-                key: "--button__text-color__active",
-                value: [ 0, 0, 100 ]
-            },
-            {
-                name: "Background",
-                type: "hsl",
-                key: "--button__background-color",
-                value: [ hue, 100 * sat, 15 ]
-            },
-            {
-                name: "Background (Hover)",
-                type: "hsl",
-                key: "--button__background-color__hover",
-                value: [ hue, 100 * sat, 20 ]
-            },
-            {
-                name: "Background (Active)",
-                type: "hsl",
-                key: "--button__background-color__active",
-                value: [ hue, 100 * sat, 30 ]
-            },
-            {
-                name: "Border",
-                type: "hsl",
-                key: "--button__border-color",
-                value: [ hue, 100 * sat, 15 ]
-            },
-            {
-                name: "Border (Hover)",
-                type: "hsl",
-                key: "--button__border-color__hover",
-                value: [ hue, 100 * sat, 60 ]
-            },
-            {
-                name: "Border (Active)",
-                type: "hsl",
-                key: "--button__border-color__active",
-                value: [ hue, 100 * sat, 60 ]
-            }
-        ]
-    },
-    {
-        category: "Menu Item",
-        values: [
-            {
-                name: "Background",
-                type: "hsl",
-                key: "--menu-item__background-color",
-                value: [ hue, 100 * sat, 15 ]
-            },
-            {
-                name: "Background (Hover)",
-                type: "hsl",
-                key: "--menu-item__background-color__hover",
-                value: [ hue, 100 * sat, 25 ]
-            }
-        ]
-    },
-    {
-        category: "Input",
-        values: [
-            {
-                name: "Text",
-                type: "hsl",
-                key: "--input__text-color",
-                value: [ 0, 0, 100 ]
-            },
-            {
-                name: "Text (Placeholder)",
-                type: "hsl",
-                key: "--input__text-color__placeholder",
-                value: [ hue, 30 * sat, 50 ]
-            },
-            {
-                name: "Background",
-                type: "hsl",
-                key: "--input__background-color",
-                value: [ hue, 100 * sat, 5 ]
-            },
-            {
-                name: "Background (Hover)",
-                type: "hsl",
-                key: "--input__background-color__hover",
-                value: [ hue, 100 * sat, 5 ]
-            },
-            {
-                name: "Background (Focus)",
-                type: "hsl",
-                key: "--input__background-color__focus",
-                value: [ hue, 100 * sat, 5 ]
-            },
-            {
-                name: "Border",
-                type: "hsl",
-                key: "--input__border-color",
-                value: [ hue, 100 * sat, 20 ]
-            },
-            {
-                name: "Border (Hover)",
-                type: "hsl",
-                key: "--input__border-color__hover",
-                value: [ hue, 100 * sat, 60 ]
-            },
-            {
-                name: "Border (Focus)",
-                type: "hsl",
-                key: "--input__border-color__focus",
-                value: [ hue, 100 * sat, 60 ]
-            }
-        ]
-    },
-    {
-        category: "Textarea",
-        values: [
-            {
-                name: "Background",
-                type: "hsla",
-                key: "--textarea__background-color",
-                value: [ 0, 0, 0, .25 ]
-            },
-            {
-                name: "Background (Focus)",
-                type: "hsla",
-                key: "--textarea__background-color__focus",
-                value: [ 0, 0, 0, .45 ]
-            }
-        ]
-    },
-    {
-        category: "Character",
-        values: [
-            {
-                name: "Background (Hover)",
-                type: "hsl",
-                key: "--character__background-color__hover",
-                value: [ hue, 60 * sat, 15 ]
-            },
-            {
-                name: "Border (Hover)",
-                type: "hsl",
-                key: "--character__border-color__hover",
-                value: [ hue, 80 * sat, 45 ]
-            },
-            {
-                name: "Badge (Background)",
-                type: "hsla",
-                key: "--badge__background-color",
-                value: [ hue, 50 * sat, 50, .5 ]
-            },
-            {
-                name: "Badge (Recent, Background)",
-                type: "hsla",
-                key: "--badge__background-color__recent",
-                value: [ hue, 40 * sat, 30, .5 ]
-            },
-            {
-                name: "Badge (Private, Background)",
-                type: "hsla",
-                key: "--badge__background-color__private",
-                value: [ hue, 50 * sat, 50, .5 ]
-            },
-            {
-                name: "Badge (Public, Background)",
-                type: "hsla",
-                key: "--badge__background-color__public",
-                value: [ hue, 50 * sat, 50, .5 ]
-            }
-        ]
-    },
-    {
-        category: "Message",
-        values: [
-            {
-                name: "Background (You)",
-                type: "hsla",
-                key: "--message__background-color__you",
-                value: [ 0, 0, 0, .5 ]
-            },
-            {
-                name: "Background (Bot)",
-                type: "hsla",
-                key: "--message__background-color__bot",
-                value: [ hue, 100 * sat, 50, 0 ]
-            }
-        ]
-    },
-    {
-        category: "Message Topic",
-        values: [
-            {
-                name: "Text (You)",
-                type: "hsla",
-                key: "--message-topic__text-color__you",
-                value: [ hue, 70 * sat, 80, .85 ]
-            },
-            {
-                name: "Background (You)",
-                type: "hsla",
-                key: "--message-topic__background-color__you",
-                value: [ hue, 70 * sat, 25, .35 ]
-            },
-            {
-                name: "Text (Bot)",
-                type: "hsla",
-                key: "--message-topic__text-color__bot",
-                value: [ hue, 85 * sat, 85, .85 ]
-            },
-            {
-                name: "Background (Bot)",
-                type: "hsla",
-                key: "--message-topic__background-color__bot",
-                value: [ hue, 70 * sat, 45, .15 ]
-            }
-        ]
-    },
-    {
-        category: "Message Original",
-        values: [
-            {
-                name: "Text",
-                type: "hsla",
-                key: "--message-original__text-color",
-                value: [ hue, 100 * sat, 80, .4 ]
-            }
-        ]
-    },
-    {
-        category: "Overlay",
-        values: [
-            {
-                name: "Background",
-                type: "hsla",
-                key: "--overlay__background-color",
-                value: [ 0, 0, 0, .6 ]
-            }
-        ]
-    },
-    {
-        category: "Dialog",
-        values: [
-            {
-                name: "Background",
-                type: "hsl",
-                key: "--dialog__background-color",
-                value: [ hue, 80 * sat, 5 ]
-            },
-            {
-                name: "Border",
-                type: "hsla",
-                key: "--dialog__border-color",
-                value: [ hue, 100 * sat, 10, 1 ]
-            },
-            {
-                name: "Border (Empty Image)",
-                type: "hsla",
-                key: "--dialog__border-color__empty-image",
-                value: [ 0, 0, 100, .13 ]
-            }
-        ]
-    }
-]
+function getcssRootDefault()
+{
+    loadDefaults()
+    
+    const isNSFW = localStorage.getItem(`nsfw`) == `true`
+    const hue = isNSFW ? 345 : 240
+    const sat = isNSFW ? 0.7 : 0.05
+    const logoSaturation = isNSFW ? 65 : 0
+    return [
+        {
+            category: "Font",
+            values: [
+                {
+                    name: "Family",
+                    type: "select",
+                    key: "--font-family",
+                    value: `rubik`,
+                    options: [
+                        [ `serif`, `Serif` ],
+                        [ `sans-serif`, `Sans Serif` ],
+                        [ `montserrat`, `Montserrat` ],
+                        [ `rubik`, `Rubik` ],
+                        [ `roboto`, `Roboto` ],
+                        [ `roboto-condensed`, `Roboto Condensed` ],
+                        [ `playpen-sans`, `Playpen Sans` ],
+                        [ `patrick-hand`, `Patrick Hand` ],
+                        [ `dejavu`, `DejaVu` ]
+                    ]
+                },
+                {
+                    name: "Size",
+                    type: "select",
+                    key: "--font-size",
+                    value: `1em`,
+                    options: [
+                        [ `.85em`, `small` ],
+                        [ `1em`, `normal` ],
+                        [ `1.15em`, `big` ]
+                    ]
+                }
+            ]
+        },
+        {
+            category: "Logo",
+            values: [
+                {
+                    name: "Saturation",
+                    type: "float",
+                    key: "--logo__saturation",
+                    value: logoSaturation
+                }
+            ]
+        },
+        {
+            category: "Body",
+            values: [
+                {
+                    name: "Text",
+                    type: "hsl",
+                    key: "--body__text-color",
+                    value: [ 0, 0, 100 ]
+                },
+                {
+                    name: "Background",
+                    type: "hsl",
+                    key: "--body__background-color",
+                    value: [ hue, 50 * sat, 10 ]
+                },
+                {
+                    name: "Tooltip (Background)",
+                    type: "hsla",
+                    key: "--tooltip__background-color",
+                    value: [ 0, 0, 0, 1 ]
+                }
+            ]
+        },
+        {
+            category: "Main",
+            values: [
+                {
+                    name: "Background",
+                    type: "hsla",
+                    key: "--main__background-color",
+                    value: [ 0, 0, 0, 0 ]
+                }
+            ]
+        },
+        {
+            category: "Button",
+            values: [
+                {
+                    name: "Text",
+                    type: "hsl",
+                    key: "--button__text-color",
+                    value: [ 0, 0, 100 ]
+                },
+                {
+                    name: "Text (Hover)",
+                    type: "hsl",
+                    key: "--button__text-color__hover",
+                    value: [ 0, 0, 100 ]
+                },
+                {
+                    name: "Text (Active)",
+                    type: "hsl",
+                    key: "--button__text-color__active",
+                    value: [ 0, 0, 100 ]
+                },
+                {
+                    name: "Background",
+                    type: "hsl",
+                    key: "--button__background-color",
+                    value: [ hue, 100 * sat, 15 ]
+                },
+                {
+                    name: "Background (Hover)",
+                    type: "hsl",
+                    key: "--button__background-color__hover",
+                    value: [ hue, 100 * sat, 20 ]
+                },
+                {
+                    name: "Background (Active)",
+                    type: "hsl",
+                    key: "--button__background-color__active",
+                    value: [ hue, 100 * sat, 30 ]
+                },
+                {
+                    name: "Border",
+                    type: "hsl",
+                    key: "--button__border-color",
+                    value: [ hue, 100 * sat, 15 ]
+                },
+                {
+                    name: "Border (Hover)",
+                    type: "hsl",
+                    key: "--button__border-color__hover",
+                    value: [ hue, 100 * sat, 60 ]
+                },
+                {
+                    name: "Border (Active)",
+                    type: "hsl",
+                    key: "--button__border-color__active",
+                    value: [ hue, 100 * sat, 60 ]
+                }
+            ]
+        },
+        {
+            category: "Menu Item",
+            values: [
+                {
+                    name: "Background",
+                    type: "hsl",
+                    key: "--menu-item__background-color",
+                    value: [ hue, 100 * sat, 15 ]
+                },
+                {
+                    name: "Background (Hover)",
+                    type: "hsl",
+                    key: "--menu-item__background-color__hover",
+                    value: [ hue, 100 * sat, 25 ]
+                }
+            ]
+        },
+        {
+            category: "Input",
+            values: [
+                {
+                    name: "Text",
+                    type: "hsl",
+                    key: "--input__text-color",
+                    value: [ 0, 0, 100 ]
+                },
+                {
+                    name: "Text (Placeholder)",
+                    type: "hsl",
+                    key: "--input__text-color__placeholder",
+                    value: [ hue, 30 * sat, 50 ]
+                },
+                {
+                    name: "Background",
+                    type: "hsl",
+                    key: "--input__background-color",
+                    value: [ hue, 100 * sat, 5 ]
+                },
+                {
+                    name: "Background (Hover)",
+                    type: "hsl",
+                    key: "--input__background-color__hover",
+                    value: [ hue, 100 * sat, 5 ]
+                },
+                {
+                    name: "Background (Focus)",
+                    type: "hsl",
+                    key: "--input__background-color__focus",
+                    value: [ hue, 100 * sat, 5 ]
+                },
+                {
+                    name: "Border",
+                    type: "hsl",
+                    key: "--input__border-color",
+                    value: [ hue, 100 * sat, 20 ]
+                },
+                {
+                    name: "Border (Hover)",
+                    type: "hsl",
+                    key: "--input__border-color__hover",
+                    value: [ hue, 100 * sat, 60 ]
+                },
+                {
+                    name: "Border (Focus)",
+                    type: "hsl",
+                    key: "--input__border-color__focus",
+                    value: [ hue, 100 * sat, 60 ]
+                }
+            ]
+        },
+        {
+            category: "Textarea",
+            values: [
+                {
+                    name: "Background",
+                    type: "hsla",
+                    key: "--textarea__background-color",
+                    value: [ 0, 0, 0, .25 ]
+                },
+                {
+                    name: "Background (Focus)",
+                    type: "hsla",
+                    key: "--textarea__background-color__focus",
+                    value: [ 0, 0, 0, .45 ]
+                }
+            ]
+        },
+        {
+            category: "Character",
+            values: [
+                {
+                    name: "Background (Hover)",
+                    type: "hsl",
+                    key: "--character__background-color__hover",
+                    value: [ hue, 60 * sat, 15 ]
+                },
+                {
+                    name: "Border (Hover)",
+                    type: "hsl",
+                    key: "--character__border-color__hover",
+                    value: [ hue, 80 * sat, 45 ]
+                },
+                {
+                    name: "Badge (Background)",
+                    type: "hsla",
+                    key: "--badge__background-color",
+                    value: [ hue, 50 * sat, 50, .5 ]
+                },
+                {
+                    name: "Badge (Recent, Background)",
+                    type: "hsla",
+                    key: "--badge__background-color__recent",
+                    value: [ hue, 40 * sat, 30, .5 ]
+                },
+                {
+                    name: "Badge (Private, Background)",
+                    type: "hsla",
+                    key: "--badge__background-color__private",
+                    value: [ hue, 50 * sat, 50, .5 ]
+                },
+                {
+                    name: "Badge (Public, Background)",
+                    type: "hsla",
+                    key: "--badge__background-color__public",
+                    value: [ hue, 50 * sat, 50, .5 ]
+                }
+            ]
+        },
+        {
+            category: "Message",
+            values: [
+                {
+                    name: "Background (You)",
+                    type: "hsla",
+                    key: "--message__background-color__you",
+                    value: [ 0, 0, 0, .5 ]
+                },
+                {
+                    name: "Background (Bot)",
+                    type: "hsla",
+                    key: "--message__background-color__bot",
+                    value: [ hue, 100 * sat, 50, 0 ]
+                }
+            ]
+        },
+        {
+            category: "Message Topic",
+            values: [
+                {
+                    name: "Text (You)",
+                    type: "hsla",
+                    key: "--message-topic__text-color__you",
+                    value: [ hue, 70 * sat, 80, .85 ]
+                },
+                {
+                    name: "Background (You)",
+                    type: "hsla",
+                    key: "--message-topic__background-color__you",
+                    value: [ hue, 70 * sat, 25, .35 ]
+                },
+                {
+                    name: "Text (Bot)",
+                    type: "hsla",
+                    key: "--message-topic__text-color__bot",
+                    value: [ hue, 85 * sat, 85, .85 ]
+                },
+                {
+                    name: "Background (Bot)",
+                    type: "hsla",
+                    key: "--message-topic__background-color__bot",
+                    value: [ hue, 70 * sat, 45, .15 ]
+                }
+            ]
+        },
+        {
+            category: "Message Original",
+            values: [
+                {
+                    name: "Text",
+                    type: "hsla",
+                    key: "--message-original__text-color",
+                    value: [ hue, 100 * sat, 80, .4 ]
+                }
+            ]
+        },
+        {
+            category: "Overlay",
+            values: [
+                {
+                    name: "Background",
+                    type: "hsla",
+                    key: "--overlay__background-color",
+                    value: [ 0, 0, 0, .6 ]
+                }
+            ]
+        },
+        {
+            category: "Dialog",
+            values: [
+                {
+                    name: "Background",
+                    type: "hsl",
+                    key: "--dialog__background-color",
+                    value: [ hue, 80 * sat, 5 ]
+                },
+                {
+                    name: "Border",
+                    type: "hsla",
+                    key: "--dialog__border-color",
+                    value: [ hue, 100 * sat, 10, 1 ]
+                },
+                {
+                    name: "Border (Empty Image)",
+                    type: "hsla",
+                    key: "--dialog__border-color__empty-image",
+                    value: [ 0, 0, 100, .13 ]
+                }
+            ]
+        }
+    ]
+}
 
 
 
@@ -411,18 +429,16 @@ Object.defineProperties(EventTarget.prototype,
             return query(`#main > .loader`)
         }
     },
-    $tooltip:
-    {
-        get: () =>
-        {
-            return query(`#tooltip`)
-        }
-    },
     isMobile:
     {
         value: () =>
         {
-            return navigator.userAgentData.mobile
+            if (navigator.userAgentData?.mobile)
+            {
+                return true
+            }
+            
+            return false
         }
     },
     fetchAsync:
@@ -1078,6 +1094,8 @@ class App
     pages = { }
     dialogs = { }
     
+    tooltips = []
+    
     constructor()
     {
         for (const page of [
@@ -1224,20 +1242,31 @@ class App
             $titles.query(`.title`).click()
         })
         
+        queryAll(`[data-tooltip]`).forEach($ =>
+        {
+            this.tooltips.push({
+                $target: $,
+                $tooltip: $body.create(`div`)
+                    .addClass(`tooltip`)
+                    .setHtml($.dataset.tooltip)
+            })
+        })
+        
         on(`mousemove`, ($, e) =>
         {
-            const text = $.dataset.tooltip
-            if (text)
+            for (const tooltip of this.tooltips)
             {
-                const rect = $.getBoundingClientRect()
-                $tooltip.setHtml(text)
-                $tooltip.addClass(`visible`)
-                $tooltip.style.left = `${rect.left + rect.width / 2}px`
-                $tooltip.style.top = `${rect.top}px`
-            }
-            else
-            {
-                $tooltip.removeClass(`visible`)
+                if (tooltip.$target == $)
+                {
+                    const rect = $.getBoundingClientRect()
+                    tooltip.$tooltip.addClass(`visible`)
+                    tooltip.$tooltip.style.left = `${rect.left + rect.width / 2}px`
+                    tooltip.$tooltip.style.top = `${rect.top}px`
+                }
+                else
+                {
+                    tooltip.$tooltip.removeClass(`visible`)
+                }
             }
         })
         
@@ -1271,7 +1300,7 @@ class App
         {
             x.onClick(async $sender =>
             {
-                $tooltip.removeClass(`visible`)
+                this.tooltips.forEach(x => x.$tooltip.removeClass(`visible`))
                 
                 const _action = $sender.dataset.action
                 
@@ -1296,7 +1325,7 @@ class App
         
         this.closeAllMenus($overlay =>
         {
-            $tooltip.removeClass(`visible`)
+            this.tooltips.forEach(x => x.$tooltip.removeClass(`visible`))
             
             $overlay.onClick($sender =>
             {
@@ -1312,7 +1341,7 @@ class App
         
         this.closeAllDialogs(true, $overlay =>
         {
-            $tooltip.removeClass(`visible`)
+            this.tooltips.forEach(x => x.$tooltip.removeClass(`visible`))
             
             $overlay.onClick($sender =>
             {
@@ -1522,7 +1551,7 @@ class App
         
         const set = (key, value) => document.documentElement.style.setProperty(key, value)
         
-        for (const sectionDefault of cssRootDefault)
+        for (const sectionDefault of getcssRootDefault())
         {
             const section = this.cssRoot.findOrPush(
                 x => x.category == sectionDefault.category,
@@ -1546,15 +1575,9 @@ class App
                 {
                     _value = value.value
                 }
-                else if (value.type == `color`)
+                else if (value.type == `float`)
                 {   
-                    if (value.alpha !== undefined)
-                    {
-                        let alpha = Math.round(value.alpha * 255).toString(16).toUpperCase()
-                        while (alpha.length < 2)
-                            alpha = `0${alpha}`
-                        _value += alpha
-                    }
+                    _value = value.value / 100
                 }
                 else if (value.type == `hsl`)
                 {
@@ -2374,12 +2397,23 @@ class CharacterDialog extends Dialog
         this.data.transferTo(this.$content)
     }
     
+    openThumbnail()
+    {
+        const $thumbnail = this.$.query(`[data-bind="thumbnail"]`)
+        window.open($thumbnail.value || $thumbnail.placeholder)
+    }
+    
     async regenerateThumbnailAsync()
     {
         this.cancel()
         App.instance.startLoading()
         await fetchAsync(`api/characters/${this.#chat.character.id}/regenerate-image`)
+        
+        this.#chat.character = await fetchAsync(`api/characters/${this.#chat.character.id}`).thenJson(null)
         App.instance.stopLoading()
+        
+        if (this.#chat.character)
+            await this.#chat.refreshChatAsync()
     }
     
     async saveAsync()
@@ -2397,9 +2431,13 @@ class CharacterDialog extends Dialog
             description: this.data.description,
             persona: this.data.persona,
             imagePrompt: this.data.imagePrompt,
+            negativePrompt: ``,
+            imagePromptVisible: false,
+            defaultModel: `Smart`,
             initialMessages: this.data.initialMessages.toJson(),
             tags: [`Female`],
             isPrivate: true,
+            authorNotes: ``,
             details: {
                 thumbnail: this.data.thumbnail,
                 memories: this.data.memories,
@@ -2641,6 +2679,7 @@ class AppearanceDialog extends Dialog
                 
                 if (value.type == `select`)
                 {
+                    $content.style[`grid-template-columns`] = `unset`
                     $field.style.flexDirection = `row`
                     
                     $field.query(`label`).style.width = `unset`
@@ -2663,25 +2702,13 @@ class AppearanceDialog extends Dialog
                     continue
                 }
                 
-                if (value.type == `color`)
+                if (value.type == `float`)
                 {
-                    const $input = $field.create(`input`)
-                    $input.type = value.type
-                    $input.value = value.value
-                    $input.on(`input`, () =>
+                    $field.createRangeInput(0, 100, value.value, $ =>
                     {
-                        value.value = $input.value
+                        value.value = $.value
                         App.instance.applyCssRoot()
-                    })
-                    
-                    if (value.alpha !== undefined)
-                    {
-                        $field.createRangeInput(0, 255, Math.round(value.alpha * 255), $ =>
-                        {
-                            value.alpha = $.value / 255.0
-                            App.instance.applyCssRoot()
-                        })
-                    }
+                    }).addClass(`slider`)
                     
                     continue
                 }

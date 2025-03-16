@@ -27,10 +27,12 @@ public class ImageRequest
         public string message { get; set; }
     }
 
-    public string description { get; set; }
-    public bool isRealistic { get; set; }
-    public bool justPrompt { get; set; }
-    public bool paidGeneration { get; set; }
-    public string paidPrompt { get; set; }
+    public bool onlyPrompt { get; set; }
+    public string modelType { get; set; }
     public string prompt { get; set; }
+    public string negativePrompt { get; set; }
+    public string characterName { get; set; }
+    public Character.Message[] conversation { get; set; }
+    public string userName { get; set; }
+
 }

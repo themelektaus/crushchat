@@ -31,7 +31,7 @@ public static class ExtensionMethods
             return defaultValue;
 
         string contents;
-        
+
         lock (Utils.Lock(@this.FullName))
             contents = File.ReadAllText(@this.FullName);
 

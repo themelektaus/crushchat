@@ -1,7 +1,6 @@
 using CrushChatApi;
 
 using Microsoft.AspNetCore.Mvc;
-using System.Drawing;
 
 
 
@@ -33,7 +32,10 @@ app.MapGet("/api/characters", async (HttpRequest request) =>
 {
     using var client = new CrushChatClient(request);
 
-    var characters = await client.GetCharactersAsync();
+    var characters = await client.GetCharactersAsync(
+        request.GetQueryBoolean("cache", true),
+        request.GetQueryString("search")
+    );
 
     var result = new List<Character>();
 
@@ -87,9 +89,9 @@ app.MapGet("/api/characters/{characterId}/messages", async (HttpRequest request,
     using var client = new CrushChatClient(request);
     return await client.GetCharacterMessagesAsync(
         characterId,
-        preferCache: request.GetQueryBoolean("cache", true),
-        initialize: request.GetQueryBoolean("initialize", false),
-        translate: request.GetQueryBoolean("translate", false)
+        request.GetQueryBoolean("cache", true),
+        request.GetQueryBoolean("initialize", false),
+        request.GetQueryBoolean("translate", false)
     );
 });
 
@@ -128,12 +130,13 @@ app.MapPost("/api/characters/{characterId}/messages", async (HttpRequest request
 
     using var client = new CrushChatClient(request);
 
-    var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
+    var messages = await client.GetCharacterMessagesAsync(characterId, cache: true);
+
     var index = messages.LastOrDefault()?.index ?? -1;
 
     var result = await client.PutMessageAsync("You", characterId, index + 1, body);
 
-    return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+    return await client.GetCharacterMessagesAsync(characterId, cache: false);
 });
 
 #endregion
@@ -171,13 +174,14 @@ app.MapPost("/api/characters/{characterId}/messages/{index}", async (HttpRequest
 
     using var client = new CrushChatClient(request);
 
-    var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
+    var messages = await client.GetCharacterMessagesAsync(characterId, cache: true);
+
     var message = messages.FirstOrDefault(x => x.index == index);
     message.content = body;
 
     var result = await client.PutMessageAsync(characterId, message);
 
-    return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+    return await client.GetCharacterMessagesAsync(characterId, cache: false);
 });
 
 #endregion
@@ -191,12 +195,13 @@ app.MapGet("/api/characters/{characterId}/messages/generate", async (HttpRequest
     using var client = new CrushChatClient(request);
 
     var characters = await client.GetCharactersAsync();
+
     var character = characters.FirstOrDefault(x => x.id == characterId);
 
     if (character is null)
         return default;
 
-    var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
+    var messages = await client.GetCharacterMessagesAsync(characterId, cache: true);
 
     client.AddMemories(messages, character.id);
 
@@ -236,7 +241,7 @@ app.MapGet("/api/characters/{characterId}/messages/generate", async (HttpRequest
             await translationClient.TranslateAsync("EN", language, status.reply);
     }
 
-    await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+    await client.GetCharacterMessagesAsync(characterId, cache: false);
 
     return messageRequest;
 });
@@ -252,12 +257,13 @@ app.MapGet("/api/characters/{characterId}/messages/generate/{index}", async (Htt
     using var client = new CrushChatClient(request);
 
     var characters = await client.GetCharactersAsync();
+
     var character = characters.FirstOrDefault(x => x.id == characterId);
 
     if (character is null)
         return default;
 
-    var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
+    var messages = await client.GetCharacterMessagesAsync(characterId, cache: true);
 
     client.AddMemories(messages, character.id);
 
@@ -293,7 +299,7 @@ app.MapGet("/api/characters/{characterId}/messages/generate/{index}", async (Htt
             await translationClient.TranslateAsync("EN", language, status.reply);
     }
 
-    await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+    await client.GetCharacterMessagesAsync(characterId, cache: false);
 
     return messageRequest;
 });
@@ -353,36 +359,37 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
     using var client = new CrushChatClient(request);
 
     var characters = await client.GetCharactersAsync();
+
     var character = characters.FirstOrDefault(x => x.id == characterId);
 
     if (character is null)
         return default;
 
-    var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
+    var messages = await client.GetCharacterMessagesAsync(characterId, cache: true);
+
     var message = messages.FirstOrDefault(x => x.index == index);
 
-    string paidPrompt, prompt;
+    string prompt;
 
     if (request.Headers.TryGetValue("X-Prompt", out var _prompt))
     {
         prompt = _prompt.ToString().Replace("\"", "");
-        paidPrompt = prompt + (client.nsfw ? "" : ",sfw");
         prompt += client.nsfw ? "" : ", sfw";
     }
     else
     {
-        paidPrompt = $"\"{message.content.Replace("\"", "")}\",{(client.nsfw ? "" : "sfw,")}{string.Join(',', character.imagePrompt.Split(',').Select(x => x.Trim()).Where(x => x != string.Empty))}detailed,masterpiece";
         prompt = $"\"{message.content.Replace("\"", "").Replace(',', '-')}\", {(client.nsfw ? "" : "sfw, ")}{character.imagePrompt}";
     }
 
     var imageRequest = new ImageRequest
     {
-        description = character.imagePrompt,
-        isRealistic = false,
-        justPrompt = false,
-        paidGeneration = true,
-        paidPrompt = paidPrompt,
-        prompt = prompt
+        onlyPrompt = false,
+        modelType = request.GetQueryBoolean("realistic", false) ? "realistic" : "anime",
+        prompt = character.imagePrompt,
+        negativePrompt = string.Empty,
+        characterName = character.name,
+        conversation = [message],
+        userName = string.Empty
     };
 
     var imageInfo = await client.GenerateImageAsync(imageRequest);
@@ -395,7 +402,7 @@ app.MapGet("/api/characters/{characterId}/messages/generate-image/{index}", asyn
     if (result.message != "Message saved successfully.")
         return default;
 
-    return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+    return await client.GetCharacterMessagesAsync(characterId, cache: false);
 });
 
 #endregion
@@ -408,14 +415,44 @@ app.MapGet("/api/characters/{characterId}/regenerate-image", async (HttpRequest 
 {
     using var client = new CrushChatClient(request);
 
-    using var message = client.CreateMessage(
-        HttpMethod.Put,
-        $"/api/characters/{characterId}/regenerate-image"
-    );
+    var characters = await client.GetCharactersAsync();
 
-    var (_, response) = await client.SendAsync(message);
+    var character = characters.FirstOrDefault(x => x.id == characterId);
 
-    return response;
+    if (character is null)
+        return default;
+
+    string prompt;
+
+    if (request.Headers.TryGetValue("X-Prompt", out var _prompt))
+    {
+        prompt = _prompt.ToString().Replace("\"", "");
+        prompt += client.nsfw ? "" : ", sfw";
+    }
+    else
+    {
+        prompt = $"{(client.nsfw ? "" : "sfw, ")}{character.imagePrompt}";
+    }
+
+    var imageRequest = new ImageRequest
+    {
+        onlyPrompt = true,
+        modelType = request.GetQueryBoolean("realistic", false) ? "realistic" : "anime",
+        prompt = character.imagePrompt,
+        negativePrompt = string.Empty,
+        characterName = character.name,
+        conversation = [],
+        userName = string.Empty
+    };
+
+    var imageInfo = await client.GenerateImageAsync(imageRequest);
+
+    var result = await client.UpdateThumbnailAsync(characterId, imageInfo.originalUrl);
+
+    if (!result.IsSuccessStatusCode)
+        return default;
+
+    return await client.GetCharacterMessagesAsync(characterId, cache: false);
 });
 
 #endregion
@@ -438,12 +475,13 @@ app.MapGet("/api/generate-image", async (HttpRequest request) =>
 
     var info = await client.GenerateImageAsync(new()
     {
-        description = string.Empty,
-        isRealistic = request.GetQueryBoolean("realistic", false),
-        justPrompt = false,
-        paidGeneration = true,
-        paidPrompt = prompt,
-        prompt = prompt
+        onlyPrompt = true,
+        modelType = request.GetQueryBoolean("realistic", false) ? "realistic" : "anime",
+        prompt = prompt,
+        negativePrompt = string.Empty,
+        characterName = string.Empty,
+        conversation = [],
+        userName = string.Empty
     });
 
     if (info is null)
@@ -478,7 +516,7 @@ app.MapGet("/api/images", (HttpRequest request) =>
 
 
 
-#region GET /api/images/{id}.png
+#region GET /api/images/{id}
 
 app.MapGet("/api/images/{id}", FindImage);
 app.MapGet("/api/images/{id}.jpg", FindJpg);
@@ -544,7 +582,7 @@ static IResult GetImage(HttpRequest request, string userId, string userFolder, s
         }
 
         Utils.GetImageInfoFile(userId, userFolder, id).TryDelete();
-        
+
         file.TryDelete();
         new FileInfo($"{file.FullName[..^3]}jpg").TryDelete();
 
@@ -569,7 +607,7 @@ app.MapGet("/api/characters/{characterId}/messages/delete-image/{index}", async 
 {
     using var client = new CrushChatClient(request);
 
-    var messages = await client.GetCharacterMessagesAsync(characterId, preferCache: true);
+    var messages = await client.GetCharacterMessagesAsync(characterId, cache: true);
 
     var message = messages.FirstOrDefault(x => x.index == index);
     message.image = null;
@@ -579,7 +617,7 @@ app.MapGet("/api/characters/{characterId}/messages/delete-image/{index}", async 
     if (result.message != "Message saved successfully.")
         return default;
 
-    return await client.GetCharacterMessagesAsync(characterId, preferCache: false);
+    return await client.GetCharacterMessagesAsync(characterId, cache: false);
 });
 
 #endregion

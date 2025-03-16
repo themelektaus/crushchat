@@ -32,10 +32,13 @@ public class Character
         public string description { get; set; }
         public string persona { get; set; }
         public string imagePrompt { get; set; }
+        public string negativePrompt { get; set; }
+        public bool imagePromptVisible { get; set; }
+        public string defaultModel { get; set; }
         public string initialMessages { get; set; }
-        public string thumbnail { get; set; }
         public string[] tags { get; set; }
         public bool isPrivate { get; set; }
+        public string authorNotes { get; set; }
     }
 
     public string id { get; set; }
@@ -65,7 +68,7 @@ public class Character
         }
         public List<Memory> memories { get; set; }
     }
-    
+
     public Details details { get; set; }
 
     public Character Prepare(string userId, string userFolder)

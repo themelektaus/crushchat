@@ -55,7 +55,12 @@ public class CrushChatClient : IDisposable
         return success ? await response.Content.ReadFromJsonAsync<T>() : default;
     }
 
-    public async Task<List<Character>> GetCharactersAsync(bool forceCache = false)
+    class CharacterList
+    {
+        public List<Character> characters { get; set; }
+    }
+
+    public async Task<List<Character>> GetCharactersAsync(bool cache = true, string search = null)
     {
         if (!isUser)
             return new();
@@ -66,7 +71,6 @@ public class CrushChatClient : IDisposable
 
         var cachedCharactersEnumerable = Utils.EnumerateJsonFiles<Character>(folder);
 
-        var search = request.GetQueryString("search");
         if (!string.IsNullOrEmpty(search))
         {
             cachedCharactersEnumerable = cachedCharactersEnumerable
@@ -122,7 +126,7 @@ public class CrushChatClient : IDisposable
 
         var cachedCharacters = Filtered(cachedCharactersEnumerable).ToList();
 
-        if (forceCache || request.GetQueryBoolean("cache", true))
+        if (cache)
         {
             characters = cachedCharacters;
         }
@@ -143,19 +147,19 @@ public class CrushChatClient : IDisposable
                 List<Character> found1 = null;
                 List<Character> found2 = showAll ? null : new();
 
-                recentCharacters.AddRange(await GetAsync<List<Character>>($"{path}/recent?page=1{queryString}&sortBy=Top"));
+                recentCharacters.AddRange((await GetAsync<List<Character>>($"{path}/recent?page=1{queryString}&sortBy=Top")));
 
                 for (var i = 1; ; i++)
                 {
                     if (found1 is null || found1.Count > 0)
                     {
-                        found1 = await GetAsync<List<Character>>($"{path}?page={i}{queryString}&sortBy=Top&isPrivate=true");
+                        found1 = (await GetAsync<CharacterList>($"{path}?page={i}{queryString}&sortBy=Top&isPrivate=true")).characters;
                         privateCharacters.AddRange(found1);
                     }
 
                     if (found2 is null || found2.Count > 0)
                     {
-                        found2 = await GetAsync<List<Character>>($"{path}?page={i}{queryString}&sortBy=Top&tags=");
+                        found2 = (await GetAsync<CharacterList>($"{path}?page={i}{queryString}&sortBy=Top&tags=")).characters;
                         publicCharacters.AddRange(found2);
                     }
 
@@ -172,10 +176,10 @@ public class CrushChatClient : IDisposable
             {
                 queryString = $"&search={search}&limit=25";
 
-                privateCharacters.AddRange(await GetAsync<List<Character>>($"{path}?page=1{queryString}&sortBy=Top&isPrivate=true"));
+                privateCharacters.AddRange((await GetAsync<CharacterList>($"{path}?page=1{queryString}&sortBy=Top&isPrivate=true")).characters);
                 privateCharacters.ForEach(x => x.isPrivate = true);
 
-                publicCharacters.AddRange(await GetAsync<List<Character>>($"{path}?page=1{queryString}&sortBy=Top&tags="));
+                publicCharacters.AddRange((await GetAsync<CharacterList>($"{path}?page=1{queryString}&sortBy=Top&tags=")).characters);
             }
 
             characters = Filtered(
@@ -210,12 +214,17 @@ public class CrushChatClient : IDisposable
 
         var file = Utils.GetCharacterFile(this, characterId);
 
-        return file.ReadAsJson<Character>()?.Prepare(userId, userFolder);
+        var character = file.ReadAsJson<Character>()?.Prepare(userId, userFolder);
+
+        if (request.NeedsTranslation(out var language))
+            character.TranslateTo(language);
+
+        return character;
     }
 
     public async Task<List<Character.Message>> GetCharacterMessagesAsync(
         string characterId,
-        bool preferCache,
+        bool cache,
         bool initialize = false,
         bool translate = false
     )
@@ -234,7 +243,9 @@ public class CrushChatClient : IDisposable
             if (translationClient is not null)
             {
 
-                var _character = (await GetCharactersAsync(forceCache: true)).FirstOrDefault(x => x.id == characterId);
+                var characters = await GetCharactersAsync();
+
+                var _character = characters.FirstOrDefault(x => x.id == characterId);
 
                 var text = new List<string>() {
                     _character.description.Trim(),
@@ -249,7 +260,7 @@ public class CrushChatClient : IDisposable
 
         List<Character.Message> messages;
 
-        if (!initialize && (preferCache || request.GetQueryBoolean("cache", true)) && jsonFile.Exists)
+        if (!initialize && cache && jsonFile.Exists)
         {
             messages = jsonFile.ReadAsJson<List<Character.Message>>(new());
         }
@@ -362,7 +373,7 @@ public class CrushChatClient : IDisposable
         if (!isUser)
             return default;
 
-        using var message = CreateMessage(HttpMethod.Post, "/api/generate-image");
+        using var message = CreateMessage(HttpMethod.Post, "/api/v2/generate/image");
 
         message.Content = new StringContent(
             imageRequest.ToJson(),
@@ -380,7 +391,7 @@ public class CrushChatClient : IDisposable
 
         for (; ; )
         {
-            status = await GetAsync<ImageRequest.Status>($"/api/images/status/{statusId}");
+            status = await GetAsync<ImageRequest.Status>($"/api/v2/generate/image/status/{statusId}");
             if (status.status == "error" || status.status == "completed")
                 break;
 
@@ -407,6 +418,32 @@ public class CrushChatClient : IDisposable
         imageInfo.WriteJsonTo(Utils.GetImageInfoFile(this, imageName));
 
         return imageInfo.Load(userId, userFolder, imageName);
+    }
+
+    public async Task<HttpResponseMessage> UpdateThumbnailAsync(string characterId, string imageUrl)
+    {
+        if (!isUser)
+            return default;
+
+        var message = CreateMessage(HttpMethod.Post, $"/api/characters/{characterId}/regenerate-image-v2/update-thumbnail");
+
+        message.Content = new StringContent(
+            $"{{\"image\":\"{imageUrl}\"}}",
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        var (_, response) = await SendAsync(message);
+
+        var _character = GetCharacter(characterId);
+
+        if (_character is not null && _character.userId == userId)
+        {
+            _character.thumbnail = imageUrl;
+            _character.WriteJsonTo(Utils.GetCharacterFile(this, characterId));
+        }
+
+        return response;
     }
 
     public async Task<HttpResponseMessage> CreateCharacterAsync(Character.Creation.New character)

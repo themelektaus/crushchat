@@ -23,7 +23,12 @@
     <Compile Remove="UserData\**" />
     <EmbeddedResource Remove="UserData\**" />
     <None Remove="UserData\**" />
-    
+
+    <Content Remove="Screenshots\**" />
+    <Compile Remove="Screenshots\**" />
+    <EmbeddedResource Remove="Screenshots\**" />
+    <None Remove="Screenshots\**" />
+
   </ItemGroup>
   
   <ItemGroup>
